@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>동글랜드 생활강화 기대값 계산기 (v22)</title>
+  <style>
+    :root{
+      --bg:#1e1e1e;
+      --panel:#252526;
+      --border:#333;
+      --border2:#3a3a3a;
+      --text:#d4d4d4;
+      --muted:#9aa0a6;
+      --blue:#569cd6;
+      --cyan:#9cdcfe;
+      --num:#b5cea8;
+      --warn:#dcdcaa;
+      --bad:#f14c4c;
+      --good:#4ec9b0;
+      --money:#ce9178;
+      --shadow: 0 10px 28px rgba(0,0,0,.22);
+      --radius: 12px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Consolas, monospace;
+      padding:18px 12px;
+      display:flex;
+      justify-content:center;
+    }
+    .container{
+      width:100%;
+      max-width: 560px;
+    }
+    h1{ text-align:center; color:var(--blue); margin:0 0 14px 0; letter-spacing:0.2px; }
+    h2{ margin:0 0 10px 0; color:var(--blue); font-size: 18px; }
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:14px;
+      margin-bottom:14px;
+      box-shadow:var(--shadow);
+    }
+    .form{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .field{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+    }
+    label{
+      color:var(--cyan);
+      flex: 0 0 190px;
+      white-space:nowrap;
+      line-height:1.1;
+    }
+    .hint{ display:block; color:var(--muted); font-size:12px; margin-top:4px; white-space:normal; }
+    .controlRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex: 1 1 auto;
+      min-width: 0;
+      justify-content:flex-end;
+    }
+    input[type="number"], input[type="text"], select{
+      background:#1e1e1e;
+      color:var(--text);
+      border:1px solid var(--border2);
+      padding:8px 10px;
+      border-radius:10px;
+      outline:none;
+      height:36px;
+      font-size:14px;
+      min-width: 0;
+    }
+    input[type="number"], input[type="text"]{ flex: 1 1 auto; width: 100%; }
+    select.unit{ width: 90px; flex: 0 0 auto; }
+    input[type="number"]:focus, input[type="text"]:focus, select:focus{
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(86,156,214,.18);
+    }
+    button{
+      background:#0e639c; color:#fff; border:none; padding:14px 18px;
+      cursor:pointer; border-radius: 12px; font-weight: 900; font-size: 16px;
+      width: 170px;
+    }
+    button:hover{ background:#1177bb; }
+    .btnRow{ display:flex; justify-content:flex-end; }
+    .result{ margin-top: 12px; line-height:1.65; font-weight: 700; }
+    .sep{ height:1px; background:var(--border2); margin: 12px 0; }
+    .blockTitle{ color:#c9d1d9; font-weight:900; margin-bottom: 8px; }
+    .k{ color:var(--cyan); }
+    .n{ color:var(--num); }
+    .money{ color:var(--money); }
+    .muted{ color:var(--muted); font-weight: 650; }
+    .warn{ color:var(--warn); }
+    .bad{ color:var(--bad); }
+    .good{ color:var(--good); }
+    .big{ font-size: 1.06em; }
+    .small{ font-size: 12px; font-weight: 650; }
+    .plusTag{ color: var(--muted); font-weight: 650; font-size: 12px; margin-left: 6px; }
+    .card{
+      border:1px solid var(--border2);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(30,30,30,.35);
+      margin-top: 12px;
+    }
+    .pctList{ margin-top: 10px; display:grid; grid-template-columns: 1fr; gap: 8px 0; }
+    
+    .pctItem{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap; }
+    details{ border:1px solid var(--border2); border-radius: 12px; padding: 10px 12px; background: rgba(30,30,30,.25); margin-top:10px; }
+    summary{ cursor:pointer; color: var(--cyan); font-weight: 900; }
+    summary::-webkit-details-marker { display:none; }
+    .highlight{
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border2);
+    }
+    .highlight .label{
+      color: var(--good);
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .highlight .value{
+      margin-top: 6px;
+      color: var(--money);
+      font-weight: 900;
+      font-size: 1.12em;
+    }
+    .highlight .value::before{
+      content:"-> ";
+      color: var(--good);
+      font-weight: 900;
+    }
+    .stepGrid{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: 86px 70px 1fr;
+      row-gap:6px;
+      column-gap: 10px;
+      font-size:14px;
+    }
+    .stepStage{ color: var(--muted); }
+    .stepPct{ text-align:right; color: var(--num); }
+    .stepGold{ text-align:right; color: var(--money); }
+    input::placeholder{ color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>생활강화 기대값 계산기</h1>
+
+    <div class="panel">
+      <h2>입력</h2>
+      <div class="form">
+
+        <div class="field">
+          <label>현재 강화 수치</label>
+          <div class="controlRow">
+            <input type="number" id="currentLevel" placeholder="0" min="0" max="20">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>목표 강화 수치<span class="hint">비우면 현재+1강 기준</span></label>
+          <div class="controlRow">
+            <input type="number" id="targetLevel" placeholder="미입력 시 +1강" min="1" max="20">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>생강석 1개 금액</label>
+          <div class="controlRow">
+            <input type="text" id="gemPrice"  data-money="1" inputmode="numeric" placeholder="예: 36,000" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>조각 1개 금액</label>
+          <div class="controlRow">
+            <input type="text" id="fragmentPrice"  data-money="1" inputmode="numeric" placeholder="예: 2,500" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>만능 보호권 1장 금액<span class="hint">(항상 사용으로 가정)</span></label>
+          <div class="controlRow">
+            <input type="text" id="allProtectPrice"  data-money="1" inputmode="numeric" placeholder="예: 300,000" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>보유 생강석</label>
+          <div class="controlRow">
+            <input type="number" id="haveGem" placeholder="0" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>보유 조각</label>
+          <div class="controlRow">
+            <select id="haveFragmentUnit" class="unit">
+              <option value="each">개</option>
+              <option value="set">세트</option>
+            </select>
+            <input type="number" id="haveFragment" placeholder="0" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>보유 강화석</label>
+          <div class="controlRow">
+            <input type="number" id="haveRune" placeholder="0" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>보유 만능 보호권</label>
+          <div class="controlRow">
+            <input type="number" id="haveAllProtect" placeholder="0" min="0">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="btnRow"><button id="calcBtn">계산</button></div>
+      <div class="result" id="resultArea"></div>
+    </div>
+  </div>
+
+  <script>
+
+const enhanceData = [
+    {cost:20000,  stone:6,   prob:0.70, descend:0.00, destroy:0.00, bless:3}, 
+    {cost:40000,  stone:11,  prob:0.60, descend:0.00, destroy:0.00, bless:4},
+  {cost:60000,  stone:17,  prob:0.50, descend:0.00, destroy:0.00, bless:4},
+  {cost:80000,  stone:22,  prob:0.45, descend:0.52, destroy:0.03, bless:5},
+  {cost:100000, stone:32,  prob:0.40, descend:0.57, destroy:0.03, bless:5},
+  {cost:120000, stone:35,  prob:0.35, descend:0.62, destroy:0.03, bless:6},
+  {cost:140000, stone:40,  prob:0.30, descend:0.65, destroy:0.03, bless:7},
+  {cost:160000, stone:45,  prob:0.30, descend:0.65, destroy:0.05, bless:7},
+  {cost:180000, stone:50,  prob:0.30, descend:0.65, destroy:0.05, bless:7},
+  {cost:200000, stone:64,  prob:0.25, descend:0.70, destroy:0.05, bless:8},
+  {cost:220000, stone:64,  prob:0.20, descend:0.00, destroy:0.00, bless:8},
+  {cost:240000, stone:72,  prob:0.20, descend:0.35, destroy:0.03, bless:10},
+  {cost:260000, stone:80,  prob:0.20, descend:0.65, destroy:0.05, bless:10},
+  {cost:280000, stone:88,  prob:0.15, descend:0.65, destroy:0.05, bless:15},
+  {cost:300000, stone:96,  prob:0.10, descend:0.70, destroy:0.05, bless:20},
+  {cost:320000, stone:96,  prob:0.10, descend:0.00, destroy:0.00, bless:20},
+  {cost:340000, stone:96,  prob:0.07, descend:0.70, destroy:0.05, bless:28},
+  {cost:360000, stone:128, prob:0.05, descend:0.65, destroy:0.05, bless:40},
+  {cost:380000, stone:128, prob:0.05, descend:0.60, destroy:0.07, bless:40},
+  {cost:400000, stone:128, prob:0.02, descend:0.55, destroy:0.07, bless:70},
+];
+
+const FRAG_PER_RUNE = 9;
+const STACK = 64;
+
+
+function stripNonDigits(s){ return (s||"").toString().replace(/[^0-9]/g, ""); }
+function formatComma(nStr){
+  const s = stripNonDigits(nStr);
+  if(s === "") return "";
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+function parseMoney(id){
+  const el = document.getElementById(id);
+  const v = stripNonDigits(el ? el.value : "");
+  return v === "" ? 0 : parseInt(v, 10);
+}
+function manValue(nGold){
+  const man = nGold / 10000.0;
+  const v = (Math.abs(man - Math.round(man)) < 1e-9) ? man.toFixed(0) : man.toFixed(1);
+  return v;
+}
+function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+function esc(s){ return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+function span(cls, txt){ return `<span class="${cls}">${esc(txt)}</span>`; }
+function br(){ return "<br>"; }
+function sep(){ return `<div class="sep"></div>`; }
+
+function formatQty(num){
+  const n = Math.ceil(num);
+  const sets = Math.floor(n/STACK);
+  const rem = n % STACK;
+  return rem > 0 ? `${n}개 (${sets}세트 ${rem}개)` : `${n}개 (${sets}세트)`;
+}
+function formatMan(nGold){
+  return `${manValue(nGold)}만냥`;
+}
+
+function plusTagMan(nGold){
+  return `<span class="plusTag">(+${manValue(nGold)})</span>`;
+}
+
+function getHaveFragmentEach(){
+  const v = parseInt(document.getElementById("haveFragment").value) || 0;
+  const unit = document.getElementById("haveFragmentUnit").value;
+  return unit === "set" ? v * STACK : v;
+}
+function getProtect(){
+  const price = parseMoney("allProtectPrice");
+  const have  = parseInt(document.getElementById("haveAllProtect").value) || 0;
+  return { price, have };
+}
+function hasPenalty(level){
+  const d = enhanceData[level];
+  if(!d) return false;
+  return (d.descend>0 || d.destroy>0);
+}
+
+function oneTry(currentLevel){
+  const d = enhanceData[currentLevel];
+  if(!d) return null;
+
+  const gemPrice = parseMoney("gemPrice");
+  const fragPrice = parseMoney("fragmentPrice");
+
+  const haveGem = parseInt(document.getElementById("haveGem").value) || 0;
+  const haveFrag = getHaveFragmentEach();
+  const haveRune = parseInt(document.getElementById("haveRune").value) || 0;
+
+  const protect = getProtect();
+  const needProtect = hasPenalty(currentLevel);
+
+  const gemsNeedAll = d.stone;
+  const fragsNeedAll = d.stone * FRAG_PER_RUNE;
+
+  const costBase = d.cost;
+  const costGemsAll = gemsNeedAll * gemPrice;
+  const costFragsAll = fragsNeedAll * fragPrice;
+  const costProtectAll = needProtect ? protect.price : 0;
+
+  const fullBuyTotal = costBase + costGemsAll + costFragsAll + costProtectAll;
+
+  const useRune = Math.min(haveRune, d.stone);
+  const runesToMake = Math.max(0, d.stone - useRune);
+
+  const gemsNeedForMake = runesToMake;
+  const fragsNeedForMake = runesToMake * FRAG_PER_RUNE;
+
+  const gemLack = Math.max(0, gemsNeedForMake - haveGem);
+  const fragLack = Math.max(0, fragsNeedForMake - haveFrag);
+  const protectLack = Math.max(0, (needProtect ? 1 : 0) - protect.have);
+
+  const costGemLack = gemLack * gemPrice;
+  const costFragLack = fragLack * fragPrice;
+  const costProtectLack = protectLack * protect.price;
+
+  const totalWithHave = d.cost + costGemLack + costFragLack + costProtectLack;
+
+  return {
+    gemsNeedAll, fragsNeedAll, needProtect,
+    costBase, costGemsAll, costFragsAll, costProtectAll,
+    fullBuyTotal,
+
+    gemLack, fragLack, protectLack,
+    costGemLack, costFragLack, costProtectLack,
+    totalWithHave
+  };
+}
+
+function solveExpected(currentLevel, targetLevel, metric){
+  const gemPrice = parseMoney("gemPrice");
+  const fragPrice = parseMoney("fragmentPrice");
+  const protect = getProtect();
+
+  const maxLvl = targetLevel - 1;
+
+  function blessMax(lvl){
+    const d = enhanceData[lvl];
+    return d ? d.bless : 0;
+  }
+
+  const E = [];
+  for(let lvl=0; lvl<=maxLvl; lvl++){
+    const B = blessMax(lvl);
+    E[lvl] = new Array(B+1).fill(0);
+  }
+
+  function attemptIncrement(lvl){
+    const d = enhanceData[lvl];
+    if(!d) return 0;
+
+    const needProt = hasPenalty(lvl);
+    const protCost = needProt ? protect.price : 0;
+
+    const gemsCnt = d.stone;
+    const fragsCnt = d.stone * FRAG_PER_RUNE;
+
+    if(metric === "tries") return 1;
+    if(metric === "gems") return gemsCnt;
+    if(metric === "frags") return fragsCnt;
+    if(metric === "protect") return needProt ? 1 : 0;
+
+    return d.cost + gemsCnt*gemPrice + fragsCnt*fragPrice + protCost;
+  }
+
+  const MAX_IT = 20000;
+  const EPS = 1e-10;
+
+  for(let it=0; it<MAX_IT; it++){
+    let maxDiff = 0;
+
+    for(let lvl=0; lvl<=maxLvl; lvl++){
+      const d = enhanceData[lvl];
+      if(!d) continue;
+
+      const B = d.bless;
+      const p = d.prob;
+      const stayProb = Math.max(0, 1 - p); 
+
+      for(let b=0; b<=B; b++){
+        const old = E[lvl][b];
+
+        const guaranteed = (b >= B);
+        const pEff = guaranteed ? 1 : p;
+
+        const succLvl = lvl + 1;
+        const succVal = (succLvl >= targetLevel) ? 0 : E[succLvl][0];
+
+        let val = attemptIncrement(lvl);
+
+        if(pEff >= 1){
+          val += succVal;
+        } else {
+          const nextB = Math.min(B, b+1);
+          const stayVal = E[lvl][nextB];
+          val += pEff*succVal + stayProb*stayVal;
+        }
+
+        E[lvl][b] = val;
+        maxDiff = Math.max(maxDiff, Math.abs(val-old));
+      }
+    }
+
+    if(maxDiff < EPS) break;
+  }
+
+  return E[currentLevel][0];
+}
+
+function stepExpectedGolds(current, target){
+  const arr = [];
+  for(let lvl=current; lvl<target; lvl++){
+    arr.push({ from:lvl, to:lvl+1, gold: solveExpected(lvl, lvl+1, "gold") });
+  }
+  return arr;
+}
+
+function render(current, target, targetImplicit, one, exp, stepPct){
+  if(current >= 20){
+    return `<div class="card">${span("bad big","현재 단계가 20강입니다. 강화 수치를 확인해주세요!")}</div>`;
+  }
+
+  const parts = [];
+
+  parts.push(`<div class="card">`);
+  parts.push(`<div class="blockTitle">다음 단계 1회 도전 (${current}강 → ${current+1}강)</div>`);
+  parts.push(`${span("k","- 강화비용")} : ${span("money big", formatMan(one.costBase))}${br()}`);
+  parts.push(`${span("k","- 필요 생강석")} : ${span("n", formatQty(one.gemsNeedAll))}${plusTagMan(one.costGemsAll)}${br()}`);
+  parts.push(`${span("k","- 필요 조각")} : ${span("n", formatQty(one.fragsNeedAll))}${plusTagMan(one.costFragsAll)}${br()}`);
+  if(one.needProtect){
+    parts.push(`${span("k","- 만능 보호권")} : ${span("n", "1장")}${plusTagMan(one.costProtectAll)}${br()}`);
+  }else{
+    parts.push(`${span("k","- 만능 보호권")} : <span class="muted">이번 단계 불필요</span>${br()}`);
+  }
+  parts.push(`<div class="highlight"><div class="label">1회 도전 비용</div><div class="value">${formatMan(one.fullBuyTotal)}</div></div>`);
+  parts.push(`</div>`);
+
+  parts.push(`<div class="card">`);
+  parts.push(`<div class="blockTitle">부족분 계산 (보유 반영)</div>`);
+  parts.push(`<div class="pctList">`);
+  parts.push(`<div class="pctItem"><span class="k">- 생강석 부족</span><span>${span("n", formatQty(one.gemLack))}${plusTagMan(one.costGemLack)}</span></div>`);
+  parts.push(`<div class="pctItem"><span class="k">- 조각 부족</span><span>${span("n", formatQty(one.fragLack))}${plusTagMan(one.costFragLack)}</span></div>`);
+  parts.push(`<div class="pctItem"><span class="k">- 만능 보호권 부족</span><span>${span("n", one.protectLack+"장")}${plusTagMan(one.costProtectLack)}</span></div>`);
+  parts.push(`</div>`);
+  parts.push(`<div class="highlight"><div class="label">보유 반영 1회 도전 비용</div><div class="value">${formatMan(one.totalWithHave)}</div></div>`);
+  parts.push(`</div>`);
+
+  parts.push(`<div class="card">`);
+  const titleRight = targetImplicit ? `<span class="warn small" style="margin-left:8px;">현재+1강 기준</span>` : ``;
+  parts.push(`<div class="blockTitle">평균 기대값 (${current}강 → ${target}강) ${titleRight}</div>`);
+
+  parts.push(`${span("k","- 평균 시도 횟수")} : ${span("n big", exp.tries.toFixed(1)+"회")}${br()}`);
+  parts.push(`${span("k","- 생강석")} : ${span("n", formatQty(exp.gems))}${plusTagMan(exp.gemsGold)}${br()}`);
+  parts.push(`${span("k","- 조각")} : ${span("n", formatQty(exp.frags))}${plusTagMan(exp.fragsGold)}${br()}`);
+  parts.push(`${span("k","- 만능 보호권")} : ${span("n", exp.protect.toFixed(1)+"장")}${plusTagMan(exp.protectGold)}${br()}`);
+  parts.push(`${span("k","- 강화비용")} : ${span("money", formatMan(exp.baseGold))}${br()}`);
+  parts.push(`<div class="highlight"><div class="label">총 비용</div><div class="value">${formatMan(exp.gold)}</div></div>`);
+
+  if(target >= current+2){
+    parts.push(`${sep()}`);
+    parts.push(`${span("k","- (현재→다음) 비용 비중")} : ${span("n big", stepPct.overall.toFixed(1)+"%")}`);
+    parts.push(`<div class="muted small">${current}→${current+1} ${formatMan(stepPct.firstGold)} / 전체 ${formatMan(exp.gold)}</div>`);
+
+    parts.push(`<div class="card" style="margin-top:10px;">`);
+    parts.push(`<div class="blockTitle" style="margin-bottom:6px;">단계별 비중</div>`);
+    parts.push(`<div class="stepGrid">`);
+    for(const it of stepPct.list){
+      parts.push(`<div class="stepStage">${it.from}→${it.to}</div>`);
+      parts.push(`<div class="stepPct">${it.pct.toFixed(1)}%</div>`);
+      parts.push(`<div class="stepGold">${formatMan(it.gold)}</div>`);
+    }
+    parts.push(`</div>`);
+    parts.push(`</div>`);
+  }
+
+  parts.push(`</div>`);
+
+  return parts.join("");
+}
+
+function calc(){
+  const current = clamp(parseInt(document.getElementById("currentLevel").value) || 0, 0, 20);
+  let target = parseInt(document.getElementById("targetLevel").value);
+  const targetRaw = (document.getElementById("targetLevel").value||"").trim();
+  const targetImplicit = (targetRaw === "");
+
+  if(isNaN(target)) target = current + 1;
+  target = clamp(target, 1, 20);
+
+  const result = document.getElementById("resultArea");
+
+  if(current >= 20){
+    result.innerHTML = `<div class="card">${span("bad big","현재 단계가 20강입니다. 강화 수치를 확인해주세요!")}</div>`;
+    return;
+  }
+  if(target <= current){
+    result.innerHTML = `<div class="card">${span("bad","목표 강화 수치는 현재보다 높아야 합니다!")}</div>`;
+    return;
+  }
+
+  if(!enhanceData[current]){
+    result.innerHTML = `<div class="card">${span("bad","해당 강화 단계 데이터가 없습니다.")}</div>`;
+    return;
+  }
+
+  const one = oneTry(current);
+
+  const expGold = solveExpected(current, target, "gold");
+  const expTries = solveExpected(current, target, "tries");
+  const expGems = solveExpected(current, target, "gems");
+  const expFrags = solveExpected(current, target, "frags");
+  const expProt = solveExpected(current, target, "protect");
+
+  const gemPrice = parseMoney("gemPrice");
+  const fragPrice = parseMoney("fragmentPrice");
+  const protPrice = parseMoney("allProtectPrice");
+
+  const exp = {
+    tries: expTries,
+    gems: expGems,
+    frags: expFrags,
+    protect: expProt,
+    gold: expGold,
+    gemsGold: expGems * gemPrice,
+    fragsGold: expFrags * fragPrice,
+    protectGold: expProt * protPrice,
+    baseGold: expGold - (expGems * gemPrice) - (expFrags * fragPrice) - (expProt * protPrice),
+  };
+
+  let stepPct = { overall: 0, firstGold: 0, list: [] };
+  if(target >= current+2){
+    const steps = stepExpectedGolds(current, target);
+    stepPct.firstGold = steps[0].gold;
+    stepPct.overall = (stepPct.firstGold / expGold) * 100;
+    stepPct.list = steps.map(s => ({ from:s.from, to:s.to, gold:s.gold, pct:(s.gold/expGold)*100 }));
+  }
+
+  result.innerHTML = render(current, target, targetImplicit, one, exp, stepPct);
+}
+
+document.getElementById("calcBtn").addEventListener("click", calc);
+
+const SAVE_KEY = "dongle_life_enhance_v19";
+
+function getAllState(){
+  return {
+    currentLevel: document.getElementById("currentLevel").value,
+    targetLevel: document.getElementById("targetLevel").value,
+    gemPrice: stripNonDigits(document.getElementById("gemPrice").value),
+    fragmentPrice: stripNonDigits(document.getElementById("fragmentPrice").value),
+    allProtectPrice: stripNonDigits(document.getElementById("allProtectPrice").value),
+    haveGem: document.getElementById("haveGem").value,
+    haveFragmentUnit: document.getElementById("haveFragmentUnit").value,
+    haveFragment: document.getElementById("haveFragment").value,
+    haveRune: document.getElementById("haveRune").value,
+    haveAllProtect: document.getElementById("haveAllProtect").value
+  };
+}
+
+function applyState(st){
+  if(!st) return;
+  const set = (id, v)=>{ const el=document.getElementById(id); if(el && v!==undefined && v!==null) el.value=v; };
+  set("currentLevel", st.currentLevel ?? "");
+  set("targetLevel", st.targetLevel ?? "");
+  set("haveGem", st.haveGem ?? "");
+  set("haveFragment", st.haveFragment ?? "");
+  set("haveRune", st.haveRune ?? "");
+  set("haveAllProtect", st.haveAllProtect ?? "");
+  if(st.haveFragmentUnit){
+    const u=document.getElementById("haveFragmentUnit");
+    if(u) u.value = st.haveFragmentUnit;
+  }
+  // money inputs with commas
+  if(st.gemPrice !== undefined) document.getElementById("gemPrice").value = formatComma(st.gemPrice);
+  if(st.fragmentPrice !== undefined) document.getElementById("fragmentPrice").value = formatComma(st.fragmentPrice);
+  if(st.allProtectPrice !== undefined) document.getElementById("allProtectPrice").value = formatComma(st.allProtectPrice);
+}
+
+function saveState(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify(getAllState()));
+  }catch(e){}
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return;
+    applyState(JSON.parse(raw));
+  }catch(e){}
+}
+
+function wireMoneyInput(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("input", ()=>{
+    const digits = stripNonDigits(el.value);
+    el.value = formatComma(digits);
+    saveState();
+  });
+}
+
+function wireSave(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("input", saveState);
+  el.addEventListener("change", saveState);
+}
+
+loadState();
+wireMoneyInput("gemPrice");
+wireMoneyInput("fragmentPrice");
+wireMoneyInput("allProtectPrice");
+
+["currentLevel","targetLevel","haveGem","haveFragment","haveRune","haveAllProtect"].forEach(wireSave);
+wireSave("haveFragmentUnit");
+
+</script>
+</body>
+</html>

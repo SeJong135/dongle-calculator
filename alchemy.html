@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>룬별 계산기</title>
+<style>
+body { background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace; padding: 20px; }
+h1 { text-align: center; color: #569cd6; margin-bottom: 20px; }
+.section { background-color: #252526; border: 1px solid #333; margin-bottom: 15px; border-radius: 5px; padding: 10px; }
+label { display: inline-block; width: 120px; margin-right: 5px; color: #9cdcfe; }
+input[type="number"], select { background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #333; padding: 3px; margin-right: 10px; width: 80px; }
+.material-row { margin-bottom: 5px; }
+.rune-result { margin-top: 5px; font-weight: bold; color: #ce9178; }
+.section-header { background-color: #333; padding: 10px; cursor: pointer; font-weight: bold; color: #c586c0; }
+.section-body { display: none; padding: 10px; background-color: #1e1e1e; }
+span.enhance-text { color: #4ec9b0; }
+</style>
+</head>
+<body>
+
+<h1>룬별 계산기</h1>
+
+<!-- 제작 수량 -->
+<div class="section">
+  <label>투시룬 수량:</label>
+  <input type="number" id="qty_a" value="1" min="1">
+  <label>호흡룬 수량:</label>
+  <input type="number" id="qty_b" value="1" min="1">
+  <label>성급룬 수량:</label>
+  <input type="number" id="qty_c" value="1" min="1">
+</div>
+
+<!-- 생활강화 -->
+<div class="section">
+  <label>생활강화 2배 확률:</label>
+  <select id="enhance">
+    <option value="0" selected>0%</option>
+    <option value="0.03">3%</option>
+    <option value="0.06">6%</option>
+    <option value="0.10">10%</option>
+    <option value="0.20">20%</option>
+  </select>
+</div>
+
+<!-- 투시룬 -->
+<div class="section">
+  <h2>투시룬</h2>
+  <div class="material-row">
+    <label>어결</label>
+    <select id="unit_a1"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_a1" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>소라</label>
+    <select id="unit_a2"><option value="1" selected>1개</option><option value="64">세트</option><option value="1728">셜커</option></select>
+    <input type="number" id="price_a2" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>금블록</label>
+    <select id="unit_a3"><option value="64" selected>세트</option><option value="1">1개</option><option value="1728">셜커</option></select>
+    <input type="number" id="price_a3" placeholder="금액">
+    <span>(1개 → 9금 → 9금조각 → 8개 사용)</span>
+  </div>
+  <div class="material-row">
+    <label>영원</label>
+    <select id="unit_a4"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_a4" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>판매가</label>
+    <input type="number" id="sell_a" value="399">
+  </div>
+  <div class="rune-result" id="result_a"></div>
+</div>
+
+<!-- 호흡룬 -->
+<div class="section">
+  <h2>호흡룬</h2>
+  <div class="material-row">
+    <label>어결</label>
+    <select id="unit_b1"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_b1" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>소라</label>
+    <select id="unit_b2"><option value="1" selected>1개</option><option value="64">세트</option><option value="1728">셜커</option></select>
+    <input type="number" id="price_b2" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>멍게</label>
+    <select id="unit_b3"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_b3" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>신성</label>
+    <select id="unit_b4"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_b4" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>마그마크림</label>
+    <select id="unit_b5"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_b5" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>판매가</label>
+    <input type="number" id="sell_b" value="526">
+  </div>
+  <div class="rune-result" id="result_b"></div>
+</div>
+
+<!-- 성급룬 -->
+<div class="section">
+  <h2>성급룬</h2>
+  <div class="material-row">
+    <label>어결</label>
+    <select id="unit_c1"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_c1" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>소라</label>
+    <select id="unit_c2"><option value="1" selected>1개</option><option value="64">세트</option><option value="1728">셜커</option></select>
+    <input type="number" id="price_c2" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>해삼</label>
+    <select id="unit_c3"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_c3" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>초월</label>
+    <select id="unit_c4"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_c4" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>키조개</label>
+    <select id="unit_c5"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
+    <input type="number" id="price_c5" placeholder="금액">
+  </div>
+  <div class="material-row">
+    <label>판매가</label>
+    <input type="number" id="sell_c" value="637">
+  </div>
+  <div class="rune-result" id="result_c"></div>
+</div>
+
+<!-- 상세 계산식 -->
+<div class="section">
+  <div class="section-header">상세 계산식 보기</div>
+  <div class="section-body" id="detailedCalc"></div>
+</div>
+
+<script>
+// 아코디언
+document.querySelector(".section-header").addEventListener("click", () => {
+  const body = document.getElementById("detailedCalc");
+  body.style.display = body.style.display === "block" ? "none" : "block";
+});
+
+// 룬별 하드코딩 수량
+const runeData = {
+  a: {qty:[12,1,8,2], names:["어결","소라","금조각","영원"], special:[false,false,true,false]},
+  b: {qty:[14,1,1,2,1/3], names:["어결","소라","멍게","신성","마그마크림"], special:[false,false,false,false,false]},
+  c: {qty:[14,1,1,2,1/3], names:["어결","소라","해삼","초월","키조개"], special:[false,false,false,false,false]}
+};
+
+function calcRune(priceIds, unitIds, runeKey, count) {
+  let total = 0;
+  let detail = "";
+  const data = runeData[runeKey];
+  for(let i=0;i<data.names.length;i++){
+    const price = parseFloat(document.getElementById(priceIds[i]).value) || 0;
+    const unit = parseFloat(document.getElementById(unitIds[i]).value) || 1;
+    let perUnit = price/unit;
+
+    // 금블록 특수 처리
+    if(data.names[i] === "금조각") {
+      perUnit = price/unit / 9 / 9; // 1금블록 → 9금 → 9금조각
+    }
+
+    const qty = data.qty[i];
+    const cost = perUnit*qty*count;
+    total += cost;
+
+    const qtyDisplay = (qty % 1 !== 0) ? qty.toFixed(2) : qty;
+    const perUnitDisplay = perUnit.toFixed(2);
+    const costDisplay = cost.toFixed(2);
+
+    detail += `${data.names[i]} 1개당 ${perUnitDisplay} × ${qtyDisplay}개 = ${costDisplay}<br>`;
+  }
+  return {total, detail};
+}
+
+function updateCalc() {
+  let countA = parseFloat(document.getElementById("qty_a").value) || 0;
+  let countB = parseFloat(document.getElementById("qty_b").value) || 0;
+  let countC = parseFloat(document.getElementById("qty_c").value) || 0;
+  const enhance = parseFloat(document.getElementById("enhance").value) || 0;
+
+  function calcResult(priceIds, unitIds, runeKey, count, sellId, resultId){
+    const r = calcRune(priceIds, unitIds, runeKey, count);
+    const sell = parseFloat(document.getElementById(sellId).value) || 1;
+
+    const baseRevenue = sell*count;
+    const baseProfit = baseRevenue - r.total;
+
+    const revenue = baseRevenue*(1 + enhance);
+    const profit = revenue - r.total;
+    const profitIncrease = profit - baseProfit;
+
+    document.getElementById(resultId).innerHTML =
+      `제작비용: ${r.total.toFixed(2)} / 이윤: ${profit.toFixed(2)} ` +
+      `<span class="enhance-text">(+${(enhance*100).toFixed(0)}% 강화, +${profitIncrease.toFixed(2)})</span>`;
+
+    return r.detail;
+  }
+
+  const detailA = calcResult(["price_a1","price_a2","price_a3","price_a4"], ["unit_a1","unit_a2","unit_a3","unit_a4"], "a", countA, "sell_a", "result_a");
+  const detailB = calcResult(["price_b1","price_b2","price_b3","price_b4","price_b5"], ["unit_b1","unit_b2","unit_b3","unit_b4","unit_b5"], "b", countB, "sell_b", "result_b");
+  const detailC = calcResult(["price_c1","price_c2","price_c3","price_c4","price_c5"], ["unit_c1","unit_c2","unit_c3","unit_c4","unit_c5"], "c", countC, "sell_c", "result_c");
+
+  document.getElementById("detailedCalc").innerHTML =
+    `<h4>투시룬</h4>${detailA}<h4>호흡룬</h4>${detailB}<h4>성급룬</h4>${detailC}`;
+}
+
+document.querySelectorAll("input, select").forEach(inp => {
+  inp.addEventListener("input", updateCalc);
+  inp.addEventListener("change", updateCalc);
+});
+
+updateCalc();
+</script>
+</body>
+</html>
