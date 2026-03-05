@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>동글랜드 생활강화 기대값 계산기 (v22)</title>
+  <title>동글랜드 생활강화 기대값 계산기 (v23)</title>
   <style>
     :root{
       --bg:#1e1e1e;
@@ -155,6 +155,31 @@
     .stepPct{ text-align:right; color: var(--num); }
     .stepGold{ text-align:right; color: var(--money); }
     input::placeholder{ color: var(--muted); }
+  
+    .btnGroup{ display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap; }
+    .btnGhost{
+      width:auto;
+      padding:12px 14px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-weight: 850;
+      border-radius: 12px;
+    }
+    .btnGhost:hover{
+      background: rgba(86,156,214,.12);
+      border-color: rgba(86,156,214,.55);
+    }
+    .toast{
+      margin-left:auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      min-height: 16px;
+      padding-left: 10px;
+      white-space: nowrap;
+    }
+
   </style>
 </head>
 <body>
@@ -236,7 +261,14 @@
     </div>
 
     <div class="panel">
-      <div class="btnRow"><button id="calcBtn">계산</button></div>
+      <div class="btnRow">
+        <div class="btnGroup">
+          <button id="calcBtn">계산</button>
+          <button id="copyBtn" class="btnGhost" type="button">결과 복사</button>
+          <button id="shareBtn" class="btnGhost" type="button">링크 복사</button>
+        </div>
+        <div id="toast" class="toast" aria-live="polite"></div>
+      </div>
       <div class="result" id="resultArea"></div>
     </div>
   </div>
@@ -585,6 +617,107 @@ function calc(){
 }
 
 document.getElementById("calcBtn").addEventListener("click", calc);
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  if(!t) return;
+  t.textContent = msg || "";
+  if(msg){
+    clearTimeout(showToast._tm);
+    showToast._tm = setTimeout(()=>{ t.textContent=""; }, 1600);
+  }
+}
+
+async function copyToClipboard(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    return true;
+  }catch(e){
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position="fixed";
+      ta.style.left="-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      return true;
+    }catch(e2){
+      return false;
+    }
+  }
+}
+
+function buildShareUrl(){
+  const st = getAllState();
+  const params = new URLSearchParams();
+  const put = (k,v)=>{ if(v!==undefined && v!==null && String(v).trim()!=="") params.set(k,String(v)); };
+  put("cur", st.currentLevel);
+  put("t", st.targetLevel);
+  put("gp", st.gemPrice);
+  put("fp", st.fragmentPrice);
+  put("pp", st.allProtectPrice);
+  put("hg", st.haveGem);
+  put("hu", st.haveFragmentUnit);
+  put("hf", st.haveFragment);
+  put("hr", st.haveRune);
+  put("hp", st.haveAllProtect);
+  const base = location.origin + location.pathname;
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+
+function applyUrlParams(){
+  const params = new URLSearchParams(location.search);
+  if(params.size === 0) return false;
+
+  const st = {};
+  if(params.has("cur")) st.currentLevel = params.get("cur");
+  if(params.has("t")) st.targetLevel = params.get("t");
+  if(params.has("gp")) st.gemPrice = params.get("gp");
+  if(params.has("fp")) st.fragmentPrice = params.get("fp");
+  if(params.has("pp")) st.allProtectPrice = params.get("pp");
+  if(params.has("hg")) st.haveGem = params.get("hg");
+  if(params.has("hu")) st.haveFragmentUnit = params.get("hu");
+  if(params.has("hf")) st.haveFragment = params.get("hf");
+  if(params.has("hr")) st.haveRune = params.get("hr");
+  if(params.has("hp")) st.haveAllProtect = params.get("hp");
+  applyState(st);
+  return true;
+}
+
+function wireEnterToCalc(){
+  const ids = ["currentLevel","targetLevel","gemPrice","fragmentPrice","allProtectPrice","haveGem","haveFragment","haveRune","haveAllProtect"];
+  for(const id of ids){
+    const el = document.getElementById(id);
+    if(!el) continue;
+    el.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){
+        e.preventDefault();
+        calc();
+      }
+    });
+  }
+}
+
+document.getElementById("copyBtn").addEventListener("click", async ()=>{
+  const text = document.getElementById("resultArea")?.innerText?.trim() || "";
+  if(!text){ showToast("복사할 결과가 없음"); return; }
+  const ok = await copyToClipboard(text);
+  showToast(ok ? "결과 복사됨" : "복사 실패");
+});
+
+document.getElementById("shareBtn").addEventListener("click", async ()=>{
+  const url = buildShareUrl();
+  const ok = await copyToClipboard(url);
+  showToast(ok ? "링크 복사됨" : "복사 실패");
+});
+
+// URL 파라미터가 있으면 그 값으로 우선 적용
+applyUrlParams();
+wireEnterToCalc();
+
 
 const SAVE_KEY = "dongle_life_enhance_v19";
 
