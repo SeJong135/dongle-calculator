@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>대장장이 보석 손익분기 계산기 (v9)</title>
+  <title>대장장이 보석 계산기 (v11)</title>
   <style>
     :root{
       --bg:#1e1e1e;
@@ -114,7 +114,6 @@
     .name{ color:var(--cyan); font-weight:900; min-width:88px; }
     .val{ color:var(--money); font-weight:900; text-align:right; }
     .sub{ color:var(--muted); font-weight:700; font-size:12px; margin-top:8px; }
-    .extraInfo{ color:var(--muted); font-weight:700; font-size:12px; margin-top:6px; line-height:1.5; }
     .note{ color:var(--muted); font-size:12px; font-weight:700; }
     .formula{ color:var(--muted); font-size:12px; font-weight:700; margin-top:6px; line-height:1.5; }
     .pill{
@@ -195,11 +194,106 @@
     .profitPos{ color: var(--good); }
     .profitNeg{ color: var(--bad); }
 
+
+@media (max-width: 640px){
+  body{
+    padding:14px 10px;
+  }
+  .container{
+    max-width:100%;
+  }
+  h1{
+    font-size:18px;
+    margin-bottom:12px;
+  }
+  .panel{
+    padding:12px;
+    border-radius:12px;
+  }
+  .form{
+    gap:8px;
+  }
+  .field{
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+  }
+  label{
+    flex:none;
+    width:100%;
+    font-size:13px;
+  }
+  .controlRow{
+    width:100%;
+    justify-content:stretch;
+    gap:8px;
+  }
+  .controlRow > *{
+    min-width:0;
+  }
+  select.short{
+    width:100%;
+  }
+  select.unit{
+    width:56%;
+    min-width:0;
+    font-size:15px;
+  }
+  input[type="text"]{
+    width:44%;
+    min-width:0;
+    font-size:16px;
+  }
+  .btnRow{
+    justify-content:stretch;
+  }
+  button{
+    width:100%;
+    height:52px;
+    font-size:18px;
+  }
+  .row{
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+  }
+  .name{
+    min-width:0;
+    line-height:1.5;
+  }
+  .pricePill{
+    display:inline-block;
+    margin-left:6px;
+    margin-top:4px;
+    vertical-align:middle;
+  }
+  .saleRow{
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+  }
+  .saleInputWrap{
+    width:100%;
+  }
+  .saleInput{
+    max-width:none;
+    width:100%;
+    font-size:16px;
+  }
+  .profitVal{
+    min-width:0;
+    text-align:left;
+  }
+  .resultNote, .extraInfo, .sub{
+    word-break:keep-all;
+  }
+}
+
 </style>
 </head>
 <body>
   <div class="container">
-    <h1>대장장이 보석 계산기</h1>
+    <h1>대장장이 보석 손익분기 계산기</h1>
 
     <div class="panel">
       <div class="form">
@@ -387,14 +481,6 @@ function manValue(n){
   return Math.abs(man - Math.round(man)) < 1e-9 ? man.toFixed(0) : man.toFixed(1);
 }
 function formatMan(n){ return `${manValue(n)} 만`; }
-function plainNumber(n){
-  const rounded = Math.round(n * 10) / 10;
-  const hasDecimal = Math.abs(rounded - Math.round(rounded)) > 1e-9;
-  const s = hasDecimal ? rounded.toFixed(1) : String(Math.round(rounded));
-  const parts = s.split(".");
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return parts.join(".");
-}
 
 function diamondPerItem(price){
   const unit = document.getElementById("diamondUnit").value;
@@ -442,13 +528,14 @@ function calc(){
     document.getElementById("resultArea").innerHTML = `<div class="card"><span class="bad">다이아 가격을 입력해주세요!</span></div>`;
     return;
   }
+
   const prices = {
     diamond,
-    redstone: ingotPerItemFromBlockPrice(parseDecimal("redPrice"), "redUnit"),       // 레드스톤 블럭 -> 레드스톤 9개
-    copper_block: blockPerBlock(parseDecimal("copperPrice"), "copperUnit"),          // 구리 블럭 그대로 사용
-    iron_ingot: ingotPerItemFromBlockPrice(parseDecimal("ironPrice"), "ironUnit"),   // 철 블럭 -> 철 9개
-    lapis: ingotPerItemFromBlockPrice(parseDecimal("lapisPrice"), "lapisUnit"),      // 청금석 블럭 -> 청금석 9개
-    gold_ingot: ingotPerItemFromBlockPrice(parseDecimal("goldPrice"), "goldUnit"),   // 금 블럭 -> 금 9개
+    redstone: ingotPerItemFromBlockPrice(parseDecimal("redPrice"), "redUnit"),   // 레드스톤 블럭 -> 레드스톤 9개
+    copper_block: blockPerBlock(parseDecimal("copperPrice"), "copperUnit"),      // 구리 블럭 그대로 사용
+    iron_ingot: ingotPerItemFromBlockPrice(parseDecimal("ironPrice"), "ironUnit"), // 철 블럭 -> 철 9개
+    lapis: ingotPerItemFromBlockPrice(parseDecimal("lapisPrice"), "lapisUnit"),  // 청금석 블럭 -> 청금석 9개
+    gold_ingot: ingotPerItemFromBlockPrice(parseDecimal("goldPrice"), "goldUnit"), // 금 블럭 -> 금 9개
     nether_ingot: netherPerIngot(parseDecimal("netherPrice")),
   };
 
@@ -457,15 +544,17 @@ function calc(){
 
   const pOilPerGem = (lvl <= 10) ? OIL_P_PER_GEM_LOW : ((enh.oil || 0) / 100.0);
   const pOilPerTry = 1 - Math.pow(1 - pOilPerGem, BATCH_GEMS);
+  const expectedOilPerShulker = SHULKER_TRIES * pOilPerTry;
+  const expectedPiecePerShulker = SHULKER_TRIES * PIECE_P_PER_TRY;
 
-  const expectedOilPerTry = pOilPerTry;
-  const expectedPiecePerTry = PIECE_P_PER_TRY;
-  const expectedByproductPerTry = (expectedOilPerTry * oilPrice) + (expectedPiecePerTry * piecePrice);
+  const expectedByproductValue = (expectedOilPerShulker * oilPrice) + (expectedPiecePerShulker * piecePrice);
+  const expectedGemsPerShulker = SHULKER_GEMS * (1 + pGem2);
 
   let rows = [];
   for(const recipe of recipes){
     let missing = false;
     let perGemMatCost = 0;
+    let terms = [];
 
     for(const m of recipe.mats){
       const unitPrice = prices[m.k] || 0;
@@ -474,58 +563,32 @@ function calc(){
         break;
       }
       perGemMatCost += unitPrice * m.qty;
+      terms.push(`${m.qty}×${unitPrice.toFixed(4)}`);
     }
     if(missing) continue;
 
-    const isStella = recipe.name === "스텔라";
+    const shulkerMaterialCost = perGemMatCost * SHULKER_GEMS;
+    const shulkerNetCost = Math.max(0, shulkerMaterialCost - expectedByproductValue);
 
-    if(isStella){
-      const baseTryCost = perGemMatCost * BATCH_GEMS;
-      const oilValueTry = expectedOilPerTry * oilPrice;
-      const pieceValueTry = expectedPiecePerTry * piecePrice;
-      const byproductValueTry = oilValueTry + pieceValueTry;
-      const rawNetTryCost = baseTryCost - byproductValueTry;
-      const shownTryCost = Math.max(0, rawNetTryCost);
-      const unitCost = shownTryCost / (BATCH_GEMS * (1 + pGem2));
+    // 1셜커 판매 손익분기
+    // 제작비는 "27번 제작해서 실제로 들어간 순비용"
+    // 1셜커 가격은 2배 효과로 기대 산출량이 늘어난 만큼 나눠서 계산
+    const breakEvenShulker = (expectedGemsPerShulker > 0)
+      ? (shulkerNetCost / expectedGemsPerShulker) * SHULKER_GEMS
+      : shulkerNetCost;
 
-      rows.push({
-        name: recipe.name,
-        cost: unitCost,
-        pill: `1개 제작비 ${plainNumber(unitCost)}`,
-        unit: "unit",
-        isZero: rawNetTryCost <= 0,
-        rawBase: baseTryCost,
-        oilVal: oilValueTry,
-        pieceVal: pieceValueTry
-      });
-    } else {
-      const baseShulkerCost = perGemMatCost * SHULKER_GEMS;
-      const oilValueShulker = expectedOilPerTry * oilPrice * SHULKER_TRIES;
-      const pieceValueShulker = expectedPiecePerTry * piecePrice * SHULKER_TRIES;
-      const byproductValueShulker = oilValueShulker + pieceValueShulker;
-      const rawNetShulkerCost = baseShulkerCost - byproductValueShulker;
-      const shownNetShulkerCost = Math.max(0, rawNetShulkerCost);
-      const shulkerCost = shownNetShulkerCost / (1 + pGem2);
-
-      rows.push({
-        name: recipe.name,
-        cost: shulkerCost,
-        pill: `1셜커 제작비 ${formatMan(shulkerCost)}`,
-        unit: "shulker",
-        isZero: rawNetShulkerCost <= 0,
-        rawBase: baseShulkerCost,
-        oilVal: oilValueShulker,
-        pieceVal: pieceValueShulker
-      });
-    }
+    rows.push({
+      name: recipe.name,
+      cost: shulkerNetCost,
+      be: breakEvenShulker,
+      formula: `${formatMan(shulkerMaterialCost)} - ${formatMan(expectedByproductValue)} = ${formatMan(shulkerNetCost)}`
+    });
   }
-
   let out = "";
 
   if(rows.length === 0){
     out += `<div class="card"><span class="bad">필요한 광물 가격이 비어있어서 계산할 보석이 없습니다!</span></div>`;
     document.getElementById("resultArea").innerHTML = out;
-    wireSaleInputs();
     return;
   }
 
@@ -533,20 +596,11 @@ function calc(){
   for(const r of rows){
     out += `<div class="row">
       <div>
-        <div class="name">${r.name}<span class="pricePill">${r.pill}</span></div>`;
-
-    if(r.isZero){
-      if(r.unit === "unit"){
-        out += `<div class="extraInfo">원재료 기준 ${plainNumber(r.rawBase / (BATCH_GEMS * (1 + pGem2)))} / 석유 기대값 ${plainNumber(r.oilVal)} · 조각 기대값 ${plainNumber(r.pieceVal)}</div>`;
-      } else {
-        out += `<div class="extraInfo">원재료 기준 ${formatMan(r.rawBase / (1 + pGem2))} / 석유 기대값 ${formatMan(r.oilVal)} · 조각 기대값 ${formatMan(r.pieceVal)}</div>`;
-      }
-    }
-
-    out += `<div class="saleRow">
+        <div class="name">${r.name}<span class="pricePill">제작비 ${formatMan(r.cost)}</span></div>
+        <div class="saleRow">
           <div class="saleInputWrap">
             <span class="saleLabel">판매가</span>
-            <input type="text" class="saleInput" data-cost="${r.cost}" data-name="${r.name}" data-unit="${r.unit}" placeholder="">
+            <input type="text" class="saleInput" data-cost="${r.cost}" data-name="${r.name}" placeholder="">
           </div>
           <div class="profitVal" data-profit-for="${r.name}">-</div>
         </div>
@@ -560,11 +614,11 @@ function calc(){
   wireSaleInputs();
 }
 
-function formatProfit(n, unit){
+
+function formatProfit(n){
   const cls = n > 0 ? "profitPos" : (n < 0 ? "profitNeg" : "");
   const sign = n > 0 ? "+" : "";
-  const body = unit === "unit" ? plainNumber(n) : formatMan(n);
-  return `<span class="${cls}">${sign}${body}</span>`;
+  return `<span class="${cls}">${sign}${formatMan(n)}</span>`;
 }
 
 function wireSaleInputs(){
@@ -587,7 +641,7 @@ function wireSaleInputs(){
         target.className = "profitVal";
         return;
       }
-      target.innerHTML = formatProfit(sell - cost, el.dataset.unit);
+      target.innerHTML = formatProfit(sell - cost);
     });
   });
 }
