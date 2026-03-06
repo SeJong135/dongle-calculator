@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>대장장이 보석 손익분기 계산기 (v9)</title>
+  <style>
+    :root{
+      --bg:#1e1e1e;
+      --panel:#252526;
+      --border:#333;
+      --border2:#3a3a3a;
+      --text:#d4d4d4;
+      --muted:#9aa0a6;
+      --blue:#569cd6;
+      --cyan:#9cdcfe;
+      --num:#b5cea8;
+      --bad:#f14c4c;
+      --good:#4ec9b0;
+      --money:#ce9178;
+      --shadow: 0 10px 28px rgba(0,0,0,.22);
+      --radius: 12px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Consolas, monospace;
+      padding:18px 12px;
+      display:flex;
+      justify-content:center;
+    }
+    .container{ width:100%; max-width: 620px; }
+    h1{ text-align:center; color:var(--blue); margin:0 0 14px 0; letter-spacing:.2px; font-size:22px; }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:14px;
+      margin-bottom:14px;
+      box-shadow:var(--shadow);
+    }
+
+    .form{ display:flex; flex-direction:column; gap:10px; }
+    .field{ display:flex; align-items:center; gap:12px; width:100%; }
+    label{ color:var(--cyan); flex: 0 0 190px; white-space:nowrap; line-height:1.15; }
+
+    .controlRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex:1 1 auto;
+      min-width:0;
+      justify-content:flex-end;
+      flex-wrap:nowrap;
+    }
+
+    input[type="text"], select{
+      background:#1e1e1e;
+      color:var(--text);
+      border:1px solid var(--border2);
+      padding:8px 10px;
+      border-radius:10px;
+      outline:none;
+      height:36px;
+      font-size:14px;
+      min-width:0;
+    }
+    input[type="text"]{ flex:1 1 auto; width:100%; }
+    select.unit{ width:175px; flex:0 0 auto; }
+    select.short{ width:150px; flex:0 0 auto; }
+
+    input:focus, select:focus{
+      border-color:var(--blue);
+      box-shadow:0 0 0 2px rgba(86,156,214,.18);
+    }
+
+    .btnRow{ display:flex; justify-content:flex-end; }
+    button{
+      background:#0e639c; color:#fff; border:none; padding:14px 18px;
+      cursor:pointer; border-radius:12px; font-weight:900; font-size:16px;
+      width:190px;
+    }
+    button:hover{ background:#1177bb; }
+
+    .result{ margin-top:12px; line-height:1.7; font-weight:800; }
+    .sep{ height:1px; background:var(--border2); margin:12px 0; }
+
+    .k{ color:var(--cyan); }
+    .n{ color:var(--num); }
+    .money{ color:var(--money); }
+    .muted{ color:var(--muted); font-weight:650; }
+    .good{ color:var(--good); }
+    .bad{ color:var(--bad); }
+
+    .card{
+      border:1px solid var(--border2);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(30,30,30,.35);
+      margin-top:10px;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      padding:12px 0;
+      border-bottom:1px solid rgba(58,58,58,.55);
+    }
+    .row:last-child{ border-bottom:none; }
+    .name{ color:var(--cyan); font-weight:900; min-width:88px; }
+    .val{ color:var(--money); font-weight:900; text-align:right; }
+    .sub{ color:var(--muted); font-weight:700; font-size:12px; margin-top:8px; }
+    .extraInfo{ color:var(--muted); font-weight:700; font-size:12px; margin-top:6px; line-height:1.5; }
+    .note{ color:var(--muted); font-size:12px; font-weight:700; }
+    .formula{ color:var(--muted); font-size:12px; font-weight:700; margin-top:6px; line-height:1.5; }
+    .pill{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(86,156,214,.45);
+      color:#c9d1d9;
+      font-size:12px;
+      font-weight:800;
+      margin-left:8px;
+      transform:translateY(-1px);
+    }
+  
+    .resultNote{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+    .pricePill{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(86,156,214,.45);
+      color:#e8edf5;
+      font-size:12px;
+      font-weight:900;
+      margin-left:8px;
+      white-space:nowrap;
+    }
+    .saleRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-top:8px;
+      flex-wrap:nowrap;
+    }
+    .saleInputWrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+      flex:1 1 auto;
+    }
+    .saleLabel{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .saleInput{
+      max-width:170px;
+      width:100%;
+      background:#1e1e1e;
+      color:var(--text);
+      border:1px solid var(--border2);
+      padding:8px 10px;
+      border-radius:10px;
+      outline:none;
+      height:34px;
+      font-size:13px;
+      min-width:0;
+    }
+    .saleInput:focus{
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(86,156,214,.18);
+    }
+    .profitVal{
+      color: var(--money);
+      font-weight: 900;
+      white-space:nowrap;
+      text-align:right;
+      min-width:110px;
+    }
+    .profitPos{ color: var(--good); }
+    .profitNeg{ color: var(--bad); }
+
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>대장장이 보석 계산기</h1>
+
+    <div class="panel">
+      <div class="form">
+        <div class="field">
+          <label>대장장이 생활강화</label>
+          <div class="controlRow">
+            <select id="enhLevel" class="short"></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>석유 가격</label>
+          <div class="controlRow">
+            <input type="text" id="oilPrice" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>조각 가격</label>
+          <div class="controlRow">
+            <input type="text" id="piecePrice" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="field">
+          <label>다이아 가격</label>
+          <div class="controlRow">
+            <select id="diamondUnit" class="unit">
+              <option value="each">다이아 1개</option>
+              <option value="block">다이아 블럭 1개</option>
+              <option value="set_block">다이아 블럭 세트</option>
+            </select>
+            <input type="text" id="diamondPrice" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>레드스톤 가격</label>
+          <div class="controlRow">
+            <select id="redUnit" class="unit">
+              <option value="block">블럭 1개</option>
+              <option value="set_block">세트(64블럭)</option>
+            </select>
+            <input type="text" id="redPrice" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>구리 가격</label>
+          <div class="controlRow">
+            <select id="copperUnit" class="unit">
+              <option value="block">블럭 1개</option>
+              <option value="set_block">세트(64블럭)</option>
+            </select>
+            <input type="text" id="copperPrice" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>철 가격</label>
+          <div class="controlRow">
+            <select id="ironUnit" class="unit">
+              <option value="block">블럭 1개</option>
+              <option value="set_block">세트(64블럭)</option>
+            </select>
+            <input type="text" id="ironPrice" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>청금석 가격</label>
+          <div class="controlRow">
+            <select id="lapisUnit" class="unit">
+              <option value="block">블럭 1개</option>
+              <option value="set_block">세트(64블럭)</option>
+            </select>
+            <input type="text" id="lapisPrice" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>금 가격</label>
+          <div class="controlRow">
+            <select id="goldUnit" class="unit">
+              <option value="block">블럭 1개</option>
+              <option value="set_block">세트(64블럭)</option>
+            </select>
+            <input type="text" id="goldPrice" inputmode="decimal">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>네더 주괴/블럭 가격</label>
+          <div class="controlRow">
+            <select id="netherUnit" class="unit">
+              <option value="ingot">주괴 1개</option>
+              <option value="block">블럭 1개</option>
+            </select>
+            <input type="text" id="netherPrice" inputmode="decimal">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="btnRow"><button id="calcBtn">계산</button></div>
+      <div class="result" id="resultArea"></div>
+    </div>
+  </div>
+
+<script>
+const STACK = 64;
+const BATCH_GEMS = 64;                    // 1회 제작 = 64개
+const SHULKER_TRIES = 27;                 // 27회 제작 = 1셜커
+const SHULKER_GEMS = BATCH_GEMS * SHULKER_TRIES; // 1728개
+const DIAMONDS_PER_BLOCK = 9;
+const ITEMS_PER_BLOCK = 9;
+const OIL_P_PER_GEM_LOW = 0.0005;         // 10강 이하: 보석 1개당 0.05%
+const PIECE_P_PER_TRY = 197 / 918;        // 1회 제작(64개)당 조각 기대확률(0/1개)
+
+const enhMap = [
+  {lvl:0,  gem2:0,  oil:0},
+  {lvl:5,  gem2:3,  oil:0},
+  {lvl:10, gem2:6,  oil:0},
+  {lvl:11, gem2:6,  oil:0.3},
+  {lvl:13, gem2:6,  oil:0.6},
+  {lvl:14, gem2:12, oil:0.6},
+  {lvl:17, gem2:15, oil:0.6},
+  {lvl:19, gem2:15, oil:0.9},
+  {lvl:20, gem2:20, oil:0.9},
+];
+
+function initEnhSelect(){
+  const sel = document.getElementById("enhLevel");
+  sel.innerHTML = "";
+  for(const it of enhMap){
+    const txt = `${it.lvl}강 (2배 ${it.gem2 ? it.gem2.toFixed(1) : "0"}% / 석유 ${it.oil ? it.oil.toFixed(1) : "0"}%)`;
+    const opt = document.createElement("option");
+    opt.value = String(it.lvl);
+    opt.textContent = txt;
+    sel.appendChild(opt);
+  }
+  sel.value = "0";
+}
+initEnhSelect();
+
+function getEnhByLevel(lvl){
+  let cur = enhMap[0];
+  for(const it of enhMap){
+    if(lvl >= it.lvl) cur = it;
+    else break;
+  }
+  return cur;
+}
+
+function parseDecimal(id){
+  const el = document.getElementById(id);
+  if(!el) return 0;
+  const raw = (el.value || "").replace(/,/g, "").trim();
+  if(raw === "") return 0;
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+function commaizeInput(el){
+  const raw = (el.value || "").replace(/,/g, "");
+  if(raw === "" || raw === "." || raw === "-"){ return; }
+  const match = raw.match(/^(\d*)(?:\.(\d*))?$/);
+  if(!match) return;
+  const intPart = (match[1] || "").replace(/^0+(?=\d)/, "");
+  const decPart = match[2];
+  const intFmt = (intPart === "" ? "0" : intPart).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  el.value = decPart !== undefined ? `${intFmt}.${decPart}` : intFmt;
+}
+function wireDecimal(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("input", ()=> commaizeInput(el));
+}
+["oilPrice","piecePrice","diamondPrice","redPrice","copperPrice","ironPrice","lapisPrice","goldPrice","netherPrice"].forEach(wireDecimal);
+
+function manValue(n){
+  const man = n / 10000.0;
+  return Math.abs(man - Math.round(man)) < 1e-9 ? man.toFixed(0) : man.toFixed(1);
+}
+function formatMan(n){ return `${manValue(n)} 만`; }
+function plainNumber(n){
+  const rounded = Math.round(n * 10) / 10;
+  const hasDecimal = Math.abs(rounded - Math.round(rounded)) > 1e-9;
+  const s = hasDecimal ? rounded.toFixed(1) : String(Math.round(rounded));
+  const parts = s.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
+
+function diamondPerItem(price){
+  const unit = document.getElementById("diamondUnit").value;
+  if(price <= 0) return 0;
+  if(unit === "each") return price;
+  if(unit === "block") return price / DIAMONDS_PER_BLOCK;
+  if(unit === "set_block") return price / (STACK * DIAMONDS_PER_BLOCK);
+  return price;
+}
+function blockPerBlock(price, unitSelId){
+  const unit = document.getElementById(unitSelId).value;
+  if(price <= 0) return 0;
+  if(unit === "block") return price;
+  if(unit === "set_block") return price / STACK;
+  return price;
+}
+function ingotPerItemFromBlockPrice(price, unitSelId){
+  return blockPerBlock(price, unitSelId) / ITEMS_PER_BLOCK;
+}
+function netherPerIngot(price){
+  const unit = document.getElementById("netherUnit").value;
+  if(price <= 0) return 0;
+  if(unit === "ingot") return price;
+  if(unit === "block") return price / ITEMS_PER_BLOCK;
+  return price;
+}
+
+// 2차 레시피 기준, "보석 1개"당 재료
+const recipes = [
+  {name:"영원",     mats:[{k:"redstone", qty:7},{k:"diamond", qty:1}]},
+  {name:"초월",     mats:[{k:"copper_block", qty:3},{k:"diamond", qty:1}]},
+  {name:"매지콘",   mats:[{k:"iron_ingot", qty:7},{k:"diamond", qty:1}]},
+  {name:"신성",     mats:[{k:"lapis", qty:7},{k:"diamond", qty:1}]},
+  {name:"뉴메니아", mats:[{k:"gold_ingot", qty:7},{k:"diamond", qty:1}]},
+  {name:"스텔라",   mats:[{k:"diamond", qty:3},{k:"nether_ingot", qty:1}]},
+];
+
+function calc(){
+  const lvl = parseInt(document.getElementById("enhLevel").value || "0", 10);
+  const enh = getEnhByLevel(lvl);
+  const pGem2 = (enh.gem2 || 0) / 100.0;
+
+  const diamond = diamondPerItem(parseDecimal("diamondPrice"));
+  if(diamond <= 0){
+    document.getElementById("resultArea").innerHTML = `<div class="card"><span class="bad">다이아 가격을 입력해주세요!</span></div>`;
+    return;
+  }
+  const prices = {
+    diamond,
+    redstone: ingotPerItemFromBlockPrice(parseDecimal("redPrice"), "redUnit"),       // 레드스톤 블럭 -> 레드스톤 9개
+    copper_block: blockPerBlock(parseDecimal("copperPrice"), "copperUnit"),          // 구리 블럭 그대로 사용
+    iron_ingot: ingotPerItemFromBlockPrice(parseDecimal("ironPrice"), "ironUnit"),   // 철 블럭 -> 철 9개
+    lapis: ingotPerItemFromBlockPrice(parseDecimal("lapisPrice"), "lapisUnit"),      // 청금석 블럭 -> 청금석 9개
+    gold_ingot: ingotPerItemFromBlockPrice(parseDecimal("goldPrice"), "goldUnit"),   // 금 블럭 -> 금 9개
+    nether_ingot: netherPerIngot(parseDecimal("netherPrice")),
+  };
+
+  const oilPrice = parseDecimal("oilPrice");
+  const piecePrice = parseDecimal("piecePrice");
+
+  const pOilPerGem = (lvl <= 10) ? OIL_P_PER_GEM_LOW : ((enh.oil || 0) / 100.0);
+  const pOilPerTry = 1 - Math.pow(1 - pOilPerGem, BATCH_GEMS);
+
+  const expectedOilPerTry = pOilPerTry;
+  const expectedPiecePerTry = PIECE_P_PER_TRY;
+  const expectedByproductPerTry = (expectedOilPerTry * oilPrice) + (expectedPiecePerTry * piecePrice);
+
+  let rows = [];
+  for(const recipe of recipes){
+    let missing = false;
+    let perGemMatCost = 0;
+
+    for(const m of recipe.mats){
+      const unitPrice = prices[m.k] || 0;
+      if(unitPrice <= 0){
+        missing = true;
+        break;
+      }
+      perGemMatCost += unitPrice * m.qty;
+    }
+    if(missing) continue;
+
+    const isStella = recipe.name === "스텔라";
+
+    if(isStella){
+      const baseTryCost = perGemMatCost * BATCH_GEMS;
+      const oilValueTry = expectedOilPerTry * oilPrice;
+      const pieceValueTry = expectedPiecePerTry * piecePrice;
+      const byproductValueTry = oilValueTry + pieceValueTry;
+      const rawNetTryCost = baseTryCost - byproductValueTry;
+      const shownTryCost = Math.max(0, rawNetTryCost);
+      const unitCost = shownTryCost / (BATCH_GEMS * (1 + pGem2));
+
+      rows.push({
+        name: recipe.name,
+        cost: unitCost,
+        pill: `1개 제작비 ${plainNumber(unitCost)}`,
+        unit: "unit",
+        isZero: rawNetTryCost <= 0,
+        rawBase: baseTryCost,
+        oilVal: oilValueTry,
+        pieceVal: pieceValueTry
+      });
+    } else {
+      const baseShulkerCost = perGemMatCost * SHULKER_GEMS;
+      const oilValueShulker = expectedOilPerTry * oilPrice * SHULKER_TRIES;
+      const pieceValueShulker = expectedPiecePerTry * piecePrice * SHULKER_TRIES;
+      const byproductValueShulker = oilValueShulker + pieceValueShulker;
+      const rawNetShulkerCost = baseShulkerCost - byproductValueShulker;
+      const shownNetShulkerCost = Math.max(0, rawNetShulkerCost);
+      const shulkerCost = shownNetShulkerCost / (1 + pGem2);
+
+      rows.push({
+        name: recipe.name,
+        cost: shulkerCost,
+        pill: `1셜커 제작비 ${formatMan(shulkerCost)}`,
+        unit: "shulker",
+        isZero: rawNetShulkerCost <= 0,
+        rawBase: baseShulkerCost,
+        oilVal: oilValueShulker,
+        pieceVal: pieceValueShulker
+      });
+    }
+  }
+
+  let out = "";
+
+  if(rows.length === 0){
+    out += `<div class="card"><span class="bad">필요한 광물 가격이 비어있어서 계산할 보석이 없습니다!</span></div>`;
+    document.getElementById("resultArea").innerHTML = out;
+    wireSaleInputs();
+    return;
+  }
+
+  out += `<div class="card">`;
+  for(const r of rows){
+    out += `<div class="row">
+      <div>
+        <div class="name">${r.name}<span class="pricePill">${r.pill}</span></div>`;
+
+    if(r.isZero){
+      if(r.unit === "unit"){
+        out += `<div class="extraInfo">원재료 기준 ${plainNumber(r.rawBase / (BATCH_GEMS * (1 + pGem2)))} / 석유 기대값 ${plainNumber(r.oilVal)} · 조각 기대값 ${plainNumber(r.pieceVal)}</div>`;
+      } else {
+        out += `<div class="extraInfo">원재료 기준 ${formatMan(r.rawBase / (1 + pGem2))} / 석유 기대값 ${formatMan(r.oilVal)} · 조각 기대값 ${formatMan(r.pieceVal)}</div>`;
+      }
+    }
+
+    out += `<div class="saleRow">
+          <div class="saleInputWrap">
+            <span class="saleLabel">판매가</span>
+            <input type="text" class="saleInput" data-cost="${r.cost}" data-name="${r.name}" data-unit="${r.unit}" placeholder="">
+          </div>
+          <div class="profitVal" data-profit-for="${r.name}">-</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  out += `<div class="resultNote">생활강화 효과로 늘어나는 추가 보석과 석유, 조각 기대값을 반영한 제작비입니다.</div>`;
+  out += `</div>`;
+
+  document.getElementById("resultArea").innerHTML = out;
+  wireSaleInputs();
+}
+
+function formatProfit(n, unit){
+  const cls = n > 0 ? "profitPos" : (n < 0 ? "profitNeg" : "");
+  const sign = n > 0 ? "+" : "";
+  const body = unit === "unit" ? plainNumber(n) : formatMan(n);
+  return `<span class="${cls}">${sign}${body}</span>`;
+}
+
+function wireSaleInputs(){
+  document.querySelectorAll(".saleInput").forEach(el=>{
+    el.addEventListener("input", ()=>{
+      const raw = (el.value || "").replace(/,/g, "");
+      const match = raw.match(/^(\d*)(?:\.(\d*))?$/);
+      if(match){
+        const intPart = (match[1] || "").replace(/^0+(?=\d)/, "");
+        const decPart = match[2];
+        const intFmt = (intPart === "" ? "" : intPart).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        el.value = decPart !== undefined ? `${intFmt}.${decPart}` : intFmt;
+      }
+      const sell = parseFloat((el.value || "").replace(/,/g, "")) || 0;
+      const cost = parseFloat(el.dataset.cost || "0") || 0;
+      const target = document.querySelector(`[data-profit-for="${el.dataset.name}"]`);
+      if(!target) return;
+      if(!sell){
+        target.textContent = "-";
+        target.className = "profitVal";
+        return;
+      }
+      target.innerHTML = formatProfit(sell - cost, el.dataset.unit);
+    });
+  });
+}
+
+document.getElementById("calcBtn").addEventListener("click", calc);
+wireSaleInputs();
+</script>
+</body>
+</html>
