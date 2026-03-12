@@ -689,6 +689,36 @@ function wireSaleInputs(){
 
 document.getElementById("calcBtn").addEventListener("click", calc);
 wireSaleInputs();
+
+const STORAGE_KEY = "gem_calc_v1";
+
+function saveState(){
+  const data = {};
+  document.querySelectorAll("input, select").forEach(el=>{
+    data[el.id] = el.value;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    const data = JSON.parse(raw);
+    Object.keys(data).forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.value = data[id];
+    });
+  }catch{}
+}
+
+document.querySelectorAll("input, select").forEach(el=>{
+  el.addEventListener("input", saveState);
+  el.addEventListener("change", saveState);
+});
+
+loadState();
+
 </script>
 </body>
 </html>
