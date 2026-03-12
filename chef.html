@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>요리사 계산기</title>
+  <style>
+    :root{
+      --panel:#1f2937;
+      --line:#374151;
+      --text:#e5e7eb;
+      --accent:#60a5fa;
+      --good:#4ade80;
+      --bad:#fb7185;
+      --input:#0f172a;
+      --chip:#111827;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Pretendard,system-ui,sans-serif;background:#0f172a;color:var(--text);padding:14px}
+    .wrap{max-width:1280px;margin:auto}
+    .card{background:var(--panel);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+    h1{margin:0;font-size:28px}
+    h2{margin:0 0 10px;font-size:18px;color:#dbeafe}
+    .desc{margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.5}
+    .grid{display:grid;gap:10px}
+    .grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .field label{font-size:13px;color:#bfdbfe}
+    .inline-input{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:6px}
+    input,select,button{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;color:white;width:100%;min-width:0}
+    button{cursor:pointer}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{width:auto;padding:9px 12px;background:var(--chip);border:1px solid var(--line);color:#dbeafe}
+    .chip.active{background:#1d4ed8;border-color:#60a5fa}
+    .mobile-results{display:grid;gap:10px}
+    .mini-card{background:#111827;border-radius:12px;padding:10px}
+    .mini-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+    .mini-title{font-weight:700}
+    .tier-badge{font-size:12px;color:#93c5fd;font-weight:600}
+    .plus{color:var(--good)}
+    .minus{color:var(--bad)}
+    .mini-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+    .stat{background:#1f2937;padding:8px;border-radius:8px;font-size:12px;line-height:1.4}
+    .stat.plus{color:var(--good)}
+    .stat.minus{color:var(--bad)}
+    .sale-box{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:6px;align-items:center;min-width:220px}
+    .sale-box input{padding:8px 10px}
+    .sale-hint{font-size:11px;color:#94a3b8}
+    .recipe-grid{display:grid;gap:10px}
+    .recipe{background:#111827;border-radius:10px;padding:10px}
+    .recipe-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:15px;color:#dbeafe;font-weight:700}
+    .recipe-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:4px 0;color:#d1d5db}
+    .recipe-total{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.12);display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+    .muted{color:#9ca3af}
+    @media (min-width:781px){.recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:780px){
+      body{padding:10px}
+      .grid.cols-4{grid-template-columns:1fr}
+      .inline-input{grid-template-columns:minmax(0,1fr) 100px}
+      .mini-grid{grid-template-columns:1fr 1fr}
+      .recipe-head,.mini-head{flex-direction:column}
+      .sale-box{grid-template-columns:minmax(0,1fr) 80px;min-width:0;width:100%}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>요리사 계산기</h1>
+    <div class="desc">판매가는 각 음식 최대 상점가, 직접 수정 가능</div>
+  </div>
+
+  <div class="card">
+    <h2>생활강화</h2>
+    <div class="grid cols-4">
+      <div class="field">
+        <label for="bonusRate">추가 생산률</label>
+        <select id="bonusRate">
+          <option value="0">0%</option>
+          <option value="0.03">3%</option>
+          <option value="0.06">6%</option>
+          <option value="0.09">9%</option>
+          <option value="0.12">12%</option>
+          <option value="0.20">20%</option>
+        </select>
+      </div>
+    </div>
+    <div class="desc">제작 기대수량 증가 -> 최종 원가 계산에만 반영</div>
+  </div>
+
+  <div class="card">
+    <h2>재료 시세</h2>
+    <div class="grid cols-4" id="priceGrid"></div>
+  </div>
+
+  <div class="card">
+    <h2>결과 필터</h2>
+    <div class="toolbar" id="filterBar"></div>
+  </div>
+
+  <div class="card">
+    <h2>손익 결과</h2>
+    <div id="mobileResults" class="mobile-results"></div>
+  </div>
+
+  <div class="card">
+    <h2>상세 레시피</h2>
+    <div id="recipeGrid" class="recipe-grid"></div>
+  </div>
+</div>
+
+<script>
+const STACK = 64;
+const SHULKER = 1728;
+const BOX = 9;
+const BOX_STACK = BOX * STACK;
+const BOX_SHULKER = BOX * SHULKER;
+const STORAGE_KEY = 'chef_calc_v2';
+const FILTERS = ['전체','1차','2차','3차','4차'];
+let currentFilter = '전체';
+
+const PRICE_FIELDS = [
+  {id:'price_t1cropbox', label:'무/고구마/콩/블루베리 상자', units:['item','stack','shulker']},
+  {id:'price_t2cropbox', label:'파/옥수수/딸기/마늘 상자', units:['item','stack','shulker']},
+  {id:'price_t3cropbox', label:'토마토/양상추 상자', units:['item','stack','shulker']},
+  {id:'price_sea_oyster', label:'굴', units:['item','box','boxstack','shulker']},
+  {id:'price_sea_seaweed', label:'미역', units:['item','box','boxstack','shulker']},
+  {id:'price_sea_abalone', label:'전복', units:['item','box','boxstack','shulker']},
+  {id:'price_sea_mussel', label:'홍합', units:['item','box','boxstack','shulker']},
+  {id:'price_carrotpotatobox', label:'당근/감자 상자', units:['item','stack','shulker']},
+  {id:'price_haybale', label:'건초더미', units:['item','stack','shulker']},
+  {id:'price_procdairy', label:'가공 우유/치즈', units:['item','stack','shulker']},
+  {id:'price_rawmeat', label:'생고기', units:['item','stack','shulker']},
+  {id:'price_beetcrate', label:'비트 상자', units:['item','stack','shulker']},
+  {id:'price_pumpkin', label:'호박', units:['item','stack','shulker']},
+  {id:'price_berrycrate', label:'열매 상자', units:['item','stack','shulker']}
+];
+
+const INPUT_IDS = ['bonusRate','currentFilter'];
+
+const RECIPES = [
+  {key:'meatball', tier:'1차', name:'무트볼', max:51, detail:[['무 x 2', p=>p.t1cropbox*(2/9)], ['당근 상자 x 2', p=>p.carrotpotatobox*2]]},
+  {key:'bagel', tier:'1차', name:'베이글', max:51, detail:[['블루베리 x 2', p=>p.t1cropbox*(2/9)], ['반죽 x 2', p=>p.dough*2]]},
+  {key:'taco', tier:'1차', name:'타코', max:51, detail:[['콩 x 2', p=>p.t1cropbox*(2/9)], ['반죽 x 2', p=>p.dough*2]]},
+  {key:'sweetpotato_candy', tier:'1차', name:'고구마 맛탕', max:51, detail:[['고구마 x 2', p=>p.t1cropbox*(2/9)], ['감자 상자 x 2', p=>p.carrotpotatobox*2]]},
+  {key:'sea_curry', tier:'1차', name:'해물카레', max:34, detail:[['굴 x 2', p=>p.oyster*2], ['당근 상자 x 1', p=>p.carrotpotatobox]]},
+  {key:'croquette', tier:'1차', name:'고로케', max:22, detail:[['감자 상자 x 2', p=>p.carrotpotatobox*2], ['당근 상자 x 2', p=>p.carrotpotatobox*2]]},
+
+  {key:'ramen', tier:'2차', name:'라면', max:85, detail:[['파 x 2', p=>p.t2cropbox*(2/9)], ['비트 상자 x 1', p=>p.beetcrate], ['가공 고기 x 1', p=>p.procMeat]]},
+  {key:'corn_macaroni', tier:'2차', name:'콘 마카로니', max:85, detail:[['옥수수 x 2', p=>p.t2cropbox*(2/9)], ['비트 상자 x 1', p=>p.beetcrate], ['가공 우유 x 1', p=>p.procMilk]]},
+  {key:'fries', tier:'2차', name:'감자튀김', max:80, detail:[['고구마 x 3', p=>p.t1cropbox*(3/9)], ['감자 상자 x 1', p=>p.carrotpotatobox], ['가공 고기 x 1', p=>p.procMeat]]},
+  {key:'burrito', tier:'2차', name:'브리또', max:80, detail:[['콩 x 3', p=>p.t1cropbox*(3/9)], ['반죽 x 1', p=>p.dough], ['가공 치즈 x 1', p=>p.procCheese]]},
+  {key:'seaweed_soup', tier:'2차', name:'미역국', max:74, detail:[['미역 x 2', p=>p.seaweed*2], ['당근 상자 x 1', p=>p.carrotpotatobox], ['가공 고기 x 1', p=>p.procMeat]]},
+
+  {key:'waffle', tier:'3차', name:'와플', max:85, detail:[['딸기 x 2', p=>p.t2cropbox*(2/9)], ['호박 x 1', p=>p.pumpkin], ['가공 우유 x 1', p=>p.procMilk]]},
+  {key:'garlic_bread', tier:'3차', name:'마늘빵', max:85, detail:[['마늘 x 2', p=>p.t2cropbox*(2/9)], ['호박 x 1', p=>p.pumpkin], ['가공 고기 x 1', p=>p.procMeat]]},
+  {key:'blueberry_cheesecake', tier:'3차', name:'블루베리 치즈케이크', max:80, detail:[['블루베리 x 3', p=>p.t1cropbox*(3/9)], ['반죽 x 1', p=>p.dough], ['가공 치즈 x 1', p=>p.procCheese]]},
+  {key:'steak', tier:'3차', name:'스테이크', max:80, detail:[['무 x 3', p=>p.t1cropbox*(3/9)], ['당근 상자 x 1', p=>p.carrotpotatobox], ['가공 고기 x 1', p=>p.procMeat]]},
+  {key:'abalone_porridge', tier:'3차', name:'전복죽', max:97, detail:[['전복 x 2', p=>p.abalone*2], ['당근 상자 x 1', p=>p.carrotpotatobox], ['가공 고기 x 1', p=>p.procMeat]]},
+
+  {key:'sandwich', tier:'4차', name:'샌드위치', max:142, detail:[['토마토 x 2', p=>p.t3cropbox*(2/9)], ['열매 상자 x 1', p=>p.berrycrate], ['가공 치즈 x 1', p=>p.procCheese]]},
+  {key:'hotdog', tier:'4차', name:'핫도그', max:142, detail:[['양상추 x 2', p=>p.t3cropbox*(2/9)], ['열매 상자 x 1', p=>p.berrycrate], ['가공 고기 x 1', p=>p.procMeat]]},
+  {key:'fruit_cake', tier:'4차', name:'과일케이크', max:89, detail:[['블루베리 x 3', p=>p.t1cropbox*(3/9)], ['당근 상자 x 1', p=>p.carrotpotatobox], ['가공 우유 x 1', p=>p.procMilk]]},
+  {key:'omelet', tier:'4차', name:'오믈렛', max:89, detail:[['콩 x 3', p=>p.t1cropbox*(3/9)], ['비트 상자 x 1', p=>p.beetcrate], ['가공 치즈 x 1', p=>p.procCheese]]},
+  {key:'roast_chicken', tier:'4차', name:'로스트 치킨', max:89, detail:[['무 x 3', p=>p.t1cropbox*(3/9)], ['당근 상자 x 1', p=>p.carrotpotatobox], ['가공 고기 x 1', p=>p.procMeat]]},
+  {key:'sweetpotato_pancake', tier:'4차', name:'고구마 팬케이크', max:89, detail:[['고구마 x 3', p=>p.t1cropbox*(3/9)], ['반죽 x 1', p=>p.dough], ['가공 고기 x 1', p=>p.procMeat]]},
+  {key:'mussel_pasta', tier:'4차', name:'홍합 파스타', max:149, detail:[['홍합 x 2', p=>p.mussel*2], ['당근 상자 x 1', p=>p.carrotpotatobox], ['가공 치즈 x 1', p=>p.procCheese]]}
+];
+
+function unitLabel(unit){
+  return ({item:'1개', stack:'1세트', shulker:'1셜커', box:'1상자', boxstack:'상자 1세트'})[unit] || unit;
+}
+function unitSize(unit){
+  if(unit==='stack') return STACK;
+  if(unit==='shulker') return SHULKER;
+  if(unit==='box') return BOX;
+  if(unit==='boxstack') return BOX_STACK;
+  return 1;
+}
+function num(v){ const n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
+function fmt1(v){ return num(v).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+function fmt0(v){ return Math.round(num(v)).toLocaleString('ko-KR'); }
+function bonusRate(){ return num(document.getElementById('bonusRate').value); }
+function withBonus(raw){ return raw / (1 + bonusRate()); }
+function perUnit(id){
+  const value = num(document.getElementById(id + '_value').value);
+  const unit = document.getElementById(id + '_unit').value;
+  return value / unitSize(unit);
+}
+
+function buildPriceGrid(){
+  const html = PRICE_FIELDS.map(f => {
+    INPUT_IDS.push(f.id + '_value', f.id + '_unit');
+    return `
+      <div class="field">
+        <label for="${f.id}_value">${f.label}</label>
+        <div class="inline-input">
+          <input id="${f.id}_value" type="number" step="0.1">
+          <select id="${f.id}_unit">
+            ${f.units.map(u => `<option value="${u}">${unitLabel(u)}</option>`).join('')}
+          </select>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('priceGrid').innerHTML = html;
+}
+
+function buildFilterBar(){
+  document.getElementById('filterBar').innerHTML = FILTERS.map(f => `
+    <button class="chip ${f===currentFilter?'active':''}" data-filter="${f}">${f}</button>
+  `).join('');
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter;
+      saveState();
+      buildFilterBar();
+      render();
+    });
+  });
+}
+
+function getPrices(){
+  const p = {
+    t1cropbox: perUnit('price_t1cropbox'),
+    t2cropbox: perUnit('price_t2cropbox'),
+    t3cropbox: perUnit('price_t3cropbox'),
+    oyster: perUnit('price_sea_oyster'),
+    seaweed: perUnit('price_sea_seaweed'),
+    abalone: perUnit('price_sea_abalone'),
+    mussel: perUnit('price_sea_mussel'),
+    carrotpotatobox: perUnit('price_carrotpotatobox'),
+    haybale: perUnit('price_haybale'),
+    procdairy: perUnit('price_procdairy'),
+    rawmeat: perUnit('price_rawmeat'),
+    beetcrate: perUnit('price_beetcrate'),
+    pumpkin: perUnit('price_pumpkin'),
+    berrycrate: perUnit('price_berrycrate')
+  };
+  p.dough = p.haybale / 3;
+  p.procMilk = p.procdairy;
+  p.procCheese = p.procdairy;
+  p.procMeat = p.rawmeat / 5;
+  return p;
+}
+
+function saleInputId(key){ return `sale_${key}`; }
+
+function buildData(){
+  const p = getPrices();
+  return RECIPES.map(r => {
+    const detail = r.detail.map(([name, fn]) => [name, fn(p)]);
+    const raw = detail.reduce((a,b)=>a+b[1],0);
+    const cost = withBonus(raw);
+    const saleEl = document.getElementById(saleInputId(r.key));
+    const sale = saleEl ? num(saleEl.value) : r.max;
+    const profit = sale - cost;
+    const roi = cost ? profit / cost : 0;
+    return {...r, detail, raw, cost, sale, profit, roi};
+  }).filter(r => currentFilter === '전체' || r.tier === currentFilter)
+    .sort((a,b)=>b.profit - a.profit);
+}
+
+function makeSaleInput(recipe){
+  return `
+    <div class="sale-box">
+      <input id="${saleInputId(recipe.key)}" type="number" step="0.1" value="${recipe.max}">
+      <div class="sale-hint">기본 최대가</div>
+    </div>`;
+}
+
+function attachSaleEvents(){
+  RECIPES.forEach(r => {
+    const el = document.getElementById(saleInputId(r.key));
+    if(!el) return;
+    if(el.dataset.bound) return;
+    el.dataset.bound = '1';
+
+    INPUT_IDS.push(saleInputId(r.key));
+
+    // 입력 중에는 저장만 하고 재렌더 안 함
+    el.addEventListener('input', () => {
+      saveState();
+    });
+
+    // 포커스가 빠질 때 반영
+    el.addEventListener('blur', () => {
+      saveState();
+      render();
+    });
+
+    // 엔터 눌렀을 때 반영
+    el.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        el.blur();
+      }
+    });
+  });
+}
+
+function render(){
+  const data = buildData();
+
+  document.getElementById('mobileResults').innerHTML = data.map(r => `
+    <div class="mini-card">
+      <div class="mini-head">
+        <div>
+          <div class="mini-title">${r.name} <span class="tier-badge">· ${r.tier}</span></div>
+          <div class="sale-hint">정렬 기준: 현재 손익</div>
+        </div>
+        <div class="sale-box">
+          <input id="${saleInputId(r.key)}" type="number" step="0.1" value="${r.sale}">
+          <div class="sale-hint">판매가</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="stat">원가<br>${fmt1(r.cost)}</div>
+        <div class="stat">판매가<br>${fmt1(r.sale)}</div>
+        <div class="stat ${r.profit >= 0 ? 'plus' : 'minus'}">손익<br>${r.profit >= 0 ? '+' : ''}${fmt1(r.profit)}</div>
+        <div class="stat ${r.roi >= 0 ? 'plus' : 'minus'}">이율<br>${r.roi >= 0 ? '+' : ''}${(r.roi*100).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}%</div>
+        <div class="stat">최대 상점가<br>${fmt0(r.max)}</div>
+        <div class="stat">원재료 합<br>${fmt1(r.raw)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('recipeGrid').innerHTML = data.map(r => `
+    <div class="recipe">
+      <div class="recipe-head">
+        <span>${r.name} <span class="tier-badge">${r.tier}</span></span>
+        <span class="${r.profit >= 0 ? 'plus' : 'minus'}">손익 ${r.profit >= 0 ? '+' : ''}${fmt1(r.profit)}</span>
+      </div>
+      ${r.detail.map(d => `<div class="recipe-row"><span>${d[0]}</span><span>${fmt1(d[1])}</span></div>`).join('')}
+      <div class="recipe-total"><span>원재료 합</span><span>${fmt1(r.raw)}</span></div>
+      <div class="recipe-total"><span>원가</span><span>${fmt1(r.cost)}</span></div>
+      <div class="recipe-total"><span>판매가</span><span>${fmt1(r.sale)}</span></div>
+      <div class="recipe-total"><span>최대 상점가</span><span>${fmt0(r.max)}</span></div>
+    </div>
+  `).join('');
+
+  attachSaleEvents();
+  saveState();
+}
+
+function applyDefaults(){
+  document.getElementById('bonusRate').value = '0';
+  currentFilter = '전체';
+  PRICE_FIELDS.forEach(f => {
+    const valueEl = document.getElementById(f.id + '_value');
+    const unitEl = document.getElementById(f.id + '_unit');
+    if(valueEl) valueEl.value = '';
+    if(unitEl) unitEl.value = f.units[0];
+  });
+}
+
+function saveState(){
+  const state = {currentFilter};
+  const bonus = document.getElementById('bonusRate');
+  if(bonus) state.bonusRate = bonus.value;
+  PRICE_FIELDS.forEach(f => {
+    const v = document.getElementById(f.id + '_value');
+    const u = document.getElementById(f.id + '_unit');
+    if(v) state[f.id + '_value'] = v.value;
+    if(u) state[f.id + '_unit'] = u.value;
+  });
+  RECIPES.forEach(r => {
+    const el = document.getElementById(saleInputId(r.key));
+    if(el) state[saleInputId(r.key)] = el.value;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState(){
+  applyDefaults();
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    const state = JSON.parse(raw);
+    if(state.bonusRate !== undefined) document.getElementById('bonusRate').value = state.bonusRate;
+    if(state.currentFilter) currentFilter = state.currentFilter;
+    PRICE_FIELDS.forEach(f => {
+      const v = document.getElementById(f.id + '_value');
+      const u = document.getElementById(f.id + '_unit');
+      if(v && state[f.id + '_value'] !== undefined) v.value = state[f.id + '_value'];
+      if(u && state[f.id + '_unit'] !== undefined) u.value = state[f.id + '_unit'];
+    });
+    window.__saleState = state;
+  }catch(e){ window.__saleState = {}; }
+}
+
+function hydrateSaleDefaults(){
+  RECIPES.forEach(r => {
+    const el = document.getElementById(saleInputId(r.key));
+    if(!el) return;
+    const saved = window.__saleState?.[saleInputId(r.key)];
+    el.value = saved !== undefined ? saved : r.max;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildPriceGrid();
+  buildFilterBar();
+  loadState();
+  document.getElementById('bonusRate').addEventListener('input', render);
+  document.getElementById('bonusRate').addEventListener('change', render);
+  PRICE_FIELDS.forEach(f => {
+    document.getElementById(f.id + '_value').addEventListener('input', render);
+    document.getElementById(f.id + '_unit').addEventListener('change', render);
+  });
+  render();
+  hydrateSaleDefaults();
+  render();
+  buildFilterBar();
+});
+</script>
+</body>
+</html>
