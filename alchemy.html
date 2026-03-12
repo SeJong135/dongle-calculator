@@ -1,233 +1,644 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>룬별 계산기</title>
-<style>
-body { background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace; padding: 20px; }
-h1 { text-align: center; color: #569cd6; margin-bottom: 20px; }
-.section { background-color: #252526; border: 1px solid #333; margin-bottom: 15px; border-radius: 5px; padding: 10px; }
-label { display: inline-block; width: 120px; margin-right: 5px; color: #9cdcfe; }
-input[type="number"], select { background-color: #1e1e1e; color: #d4d4d4; border: 1px solid #333; padding: 3px; margin-right: 10px; width: 80px; }
-.material-row { margin-bottom: 5px; }
-.rune-result { margin-top: 5px; font-weight: bold; color: #ce9178; }
-.section-header { background-color: #333; padding: 10px; cursor: pointer; font-weight: bold; color: #c586c0; }
-.section-body { display: none; padding: 10px; background-color: #1e1e1e; }
-span.enhance-text { color: #4ec9b0; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연금 룬 계산기</title>
+  <style>
+    :root{
+      --panel:#1f2937;
+      --line:#374151;
+      --text:#e5e7eb;
+      --accent:#60a5fa;
+      --good:#4ade80;
+      --bad:#fb7185;
+      --input:#0f172a;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Pretendard,system-ui,sans-serif;
+      background:#0f172a;
+      color:var(--text);
+      padding:14px;
+    }
+    .wrap{max-width:1100px;margin:auto}
+    .card{
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:14px;
+      margin-bottom:14px;
+      box-shadow:0 8px 24px rgba(0,0,0,.2);
+    }
+    h1{margin:0;font-size:28px}
+    h2{margin:0 0 10px;font-size:18px;color:#dbeafe}
+    .grid{display:grid;gap:10px}
+    .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .field label{font-size:13px;color:#bfdbfe}
+    .inline-input{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 90px;
+      gap:6px;
+    }
+    input,select{
+      background:var(--input);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px;
+      color:white;
+      width:100%;
+      min-width:0;
+    }
+    .mobile-results{display:grid;gap:10px}
+    .mini-card{
+      background:#111827;
+      border-radius:12px;
+      padding:10px;
+    }
+    .mini-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+    .plus{color:var(--good)}
+    .minus{color:var(--bad)}
+    .mini-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr 1fr;
+      gap:6px;
+    }
+    .stat{
+      background:#1f2937;
+      padding:8px;
+      border-radius:8px;
+      font-size:12px;
+      line-height:1.35;
+    }
+    .stat.plus{color:var(--good)}
+    .stat.minus{color:var(--bad)}
+    .recipe-grid{display:grid;gap:10px}
+    .recipe{background:#111827;border-radius:10px;padding:10px}
+    .recipe-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+      font-size:15px;
+      color:#dbeafe;
+      font-weight:700;
+    }
+    .recipe-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:13px;
+      margin:4px 0;
+      color:#d1d5db;
+    }
+    .recipe-total{
+      margin-top:8px;
+      padding-top:8px;
+      border-top:1px dashed rgba(255,255,255,.12);
+      display:flex;
+      justify-content:space-between;
+      font-size:13px;
+      font-weight:700;
+    }
+    @media (min-width:721px){
+      .recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width:720px){
+      body{padding:10px}
+      .grid.cols-3{grid-template-columns:1fr}
+      .inline-input{grid-template-columns:minmax(0,1fr) 84px}
+    }
+  </style>
 </head>
 <body>
+<div class="wrap">
 
-<h1>룬별 계산기</h1>
+  <div class="card">
+    <h1>연금 룬 계산기</h1>
+  </div>
 
-<!-- 제작 수량 -->
-<div class="section">
-  <label>투시룬 수량:</label>
-  <input type="number" id="qty_a" value="1" min="1">
-  <label>호흡룬 수량:</label>
-  <input type="number" id="qty_b" value="1" min="1">
-  <label>성급룬 수량:</label>
-  <input type="number" id="qty_c" value="1" min="1">
-</div>
+  <div class="card">
+    <h2>생활강화</h2>
+    <div class="grid cols-3">
+      <div class="field">
+        <label for="bonusRate">추가 생산률</label>
+        <select id="bonusRate">
+          <option value="0">0%</option>
+          <option value="0.03">3%</option>
+          <option value="0.06">6%</option>
+          <option value="0.10">10%</option>
+          <option value="0.20">20%</option>
+        </select>
+      </div>
+    </div>
+  </div>
 
-<!-- 생활강화 -->
-<div class="section">
-  <label>생활강화 2배 확률:</label>
-  <select id="enhance">
-    <option value="0" selected>0%</option>
-    <option value="0.03">3%</option>
-    <option value="0.06">6%</option>
-    <option value="0.10">10%</option>
-    <option value="0.20">20%</option>
-  </select>
-</div>
+  <div class="card">
+    <h2>재료 / 보석 시세</h2>
+    <div class="grid cols-3">
 
-<!-- 투시룬 -->
-<div class="section">
-  <h2>투시룬</h2>
-  <div class="material-row">
-    <label>어결</label>
-    <select id="unit_a1"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_a1" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>소라</label>
-    <select id="unit_a2"><option value="1" selected>1개</option><option value="64">세트</option><option value="1728">셜커</option></select>
-    <input type="number" id="price_a2" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>금블록</label>
-    <select id="unit_a3"><option value="64" selected>세트</option><option value="1">1개</option><option value="1728">셜커</option></select>
-    <input type="number" id="price_a3" placeholder="금액">
-    <span>(1개 → 9금 → 9금조각 → 8개 사용)</span>
-  </div>
-  <div class="material-row">
-    <label>영원</label>
-    <select id="unit_a4"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_a4" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>판매가</label>
-    <input type="number" id="sell_a" value="399">
-  </div>
-  <div class="rune-result" id="result_a"></div>
-</div>
+      <div class="field">
+        <label for="price_eogyeol_value">어색한 결정</label>
+        <div class="inline-input">
+          <input id="price_eogyeol_value" type="number" step="0.1">
+          <select id="price_eogyeol_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
 
-<!-- 호흡룬 -->
-<div class="section">
-  <h2>호흡룬</h2>
-  <div class="material-row">
-    <label>어결</label>
-    <select id="unit_b1"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_b1" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>소라</label>
-    <select id="unit_b2"><option value="1" selected>1개</option><option value="64">세트</option><option value="1728">셜커</option></select>
-    <input type="number" id="price_b2" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>멍게</label>
-    <select id="unit_b3"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_b3" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>신성</label>
-    <select id="unit_b4"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_b4" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>마그마크림</label>
-    <select id="unit_b5"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_b5" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>판매가</label>
-    <input type="number" id="sell_b" value="526">
-  </div>
-  <div class="rune-result" id="result_b"></div>
-</div>
+      <div class="field">
+        <label for="price_sora_value">소라</label>
+        <div class="inline-input">
+          <input id="price_sora_value" type="number" step="0.1">
+          <select id="price_sora_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
 
-<!-- 성급룬 -->
-<div class="section">
-  <h2>성급룬</h2>
-  <div class="material-row">
-    <label>어결</label>
-    <select id="unit_c1"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_c1" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>소라</label>
-    <select id="unit_c2"><option value="1" selected>1개</option><option value="64">세트</option><option value="1728">셜커</option></select>
-    <input type="number" id="price_c2" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>해삼</label>
-    <select id="unit_c3"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_c3" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>초월</label>
-    <select id="unit_c4"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_c4" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>키조개</label>
-    <select id="unit_c5"><option value="1728" selected>셜커</option><option value="64">세트</option><option value="1">1개</option></select>
-    <input type="number" id="price_c5" placeholder="금액">
-  </div>
-  <div class="material-row">
-    <label>판매가</label>
-    <input type="number" id="sell_c" value="637">
-  </div>
-  <div class="rune-result" id="result_c"></div>
-</div>
+      <div class="field">
+        <label for="price_goldblock_value">금블럭</label>
+        <div class="inline-input">
+          <input id="price_goldblock_value" type="number" step="0.1">
+          <select id="price_goldblock_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
 
-<!-- 상세 계산식 -->
-<div class="section">
-  <div class="section-header">상세 계산식 보기</div>
-  <div class="section-body" id="detailedCalc"></div>
+      <div class="field">
+        <label for="price_carrotcrate_value">당근 상자</label>
+        <div class="inline-input">
+          <input id="price_carrotcrate_value" type="number" step="0.1">
+          <select id="price_carrotcrate_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_magma_value">마그마크림</label>
+        <div class="inline-input">
+          <input id="price_magma_value" type="number" step="0.1">
+          <select id="price_magma_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_meongge_value">멍게</label>
+        <div class="inline-input">
+          <input id="price_meongge_value" type="number" step="0.1">
+          <select id="price_meongge_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_haesam_value">해삼</label>
+        <div class="inline-input">
+          <input id="price_haesam_value" type="number" step="0.1">
+          <select id="price_haesam_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_kijo_value">키조개</label>
+        <div class="inline-input">
+          <input id="price_kijo_value" type="number" step="0.1">
+          <select id="price_kijo_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_ghast_value">가스트 눈물</label>
+        <div class="inline-input">
+          <input id="price_ghast_value" type="number" step="0.1">
+          <select id="price_ghast_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_eternity_value">영원</label>
+        <div class="inline-input">
+          <input id="price_eternity_value" type="number" step="0.1">
+          <select id="price_eternity_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_transcend_value">초월</label>
+        <div class="inline-input">
+          <input id="price_transcend_value" type="number" step="0.1">
+          <select id="price_transcend_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_divine_value">신성</label>
+        <div class="inline-input">
+          <input id="price_divine_value" type="number" step="0.1">
+          <select id="price_divine_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_magicon_value">매지콘</label>
+        <div class="inline-input">
+          <input id="price_magicon_value" type="number" step="0.1">
+          <select id="price_magicon_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_newmenia_value">뉴메니아</label>
+        <div class="inline-input">
+          <input id="price_newmenia_value" type="number" step="0.1">
+          <select id="price_newmenia_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="price_stella_value">스텔라</label>
+        <div class="inline-input">
+          <input id="price_stella_value" type="number" step="0.1">
+          <select id="price_stella_unit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>룬 판매가</h2>
+    <div class="grid cols-3">
+      <div class="field"><label for="sell_투시">투시</label><input id="sell_투시" type="number" step="0.1"></div>
+      <div class="field"><label for="sell_저항">저항</label><input id="sell_저항" type="number" step="0.1"></div>
+      <div class="field"><label for="sell_치유">치유</label><input id="sell_치유" type="number" step="0.1"></div>
+      <div class="field"><label for="sell_호흡">호흡</label><input id="sell_호흡" type="number" step="0.1"></div>
+      <div class="field"><label for="sell_성급">성급</label><input id="sell_성급" type="number" step="0.1"></div>
+      <div class="field"><label for="sell_반감">반감</label><input id="sell_반감" type="number" step="0.1"></div>
+      <div class="field"><label for="sell_경험">경험</label><input id="sell_경험" type="number" step="0.1"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>손익 결과</h2>
+    <div id="mobileResults" class="mobile-results"></div>
+  </div>
+
+  <div class="card">
+    <h2>상세 레시피</h2>
+    <div id="recipeGrid" class="recipe-grid"></div>
+  </div>
+
 </div>
 
 <script>
-// 아코디언
-document.querySelector(".section-header").addEventListener("click", () => {
-  const body = document.getElementById("detailedCalc");
-  body.style.display = body.style.display === "block" ? "none" : "block";
-});
+const STACK = 64;
+const SHULKER = 1728;
+const STORAGE_KEY = "alchemy_rune_calc_v8";
 
-// 룬별 하드코딩 수량
-const runeData = {
-  a: {qty:[12,1,8,2], names:["어결","소라","금조각","영원"], special:[false,false,true,false]},
-  b: {qty:[14,1,1,2,1/3], names:["어결","소라","멍게","신성","마그마크림"], special:[false,false,false,false,false]},
-  c: {qty:[14,1,1,2,1/3], names:["어결","소라","해삼","초월","키조개"], special:[false,false,false,false,false]}
+const INPUT_IDS = [
+  "bonusRate",
+  "price_eogyeol_value","price_eogyeol_unit",
+  "price_sora_value","price_sora_unit",
+  "price_goldblock_value","price_goldblock_unit",
+  "price_carrotcrate_value","price_carrotcrate_unit",
+  "price_magma_value","price_magma_unit",
+  "price_meongge_value","price_meongge_unit",
+  "price_haesam_value","price_haesam_unit",
+  "price_kijo_value","price_kijo_unit",
+  "price_ghast_value","price_ghast_unit",
+  "price_eternity_value","price_eternity_unit",
+  "price_transcend_value","price_transcend_unit",
+  "price_divine_value","price_divine_unit",
+  "price_magicon_value","price_magicon_unit",
+  "price_newmenia_value","price_newmenia_unit",
+  "price_stella_value","price_stella_unit",
+  "sell_투시","sell_저항","sell_치유","sell_호흡","sell_성급","sell_반감","sell_경험"
+];
+
+const SELL_DEFAULTS = {
+  "sell_투시": 399,
+  "sell_저항": 453,
+  "sell_치유": 472,
+  "sell_호흡": 526,
+  "sell_성급": 637,
+  "sell_반감": 493,
+  "sell_경험": 7500
 };
 
-function calcRune(priceIds, unitIds, runeKey, count) {
-  let total = 0;
-  let detail = "";
-  const data = runeData[runeKey];
-  for(let i=0;i<data.names.length;i++){
-    const price = parseFloat(document.getElementById(priceIds[i]).value) || 0;
-    const unit = parseFloat(document.getElementById(unitIds[i]).value) || 1;
-    let perUnit = price/unit;
+function num(v){
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+}
 
-    // 금블록 특수 처리
-    if(data.names[i] === "금조각") {
-      perUnit = price/unit / 9 / 9; // 1금블록 → 9금 → 9금조각
+function fmt1(v){
+  return num(v).toLocaleString("ko-KR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+  });
+}
+
+function pct(v){
+  return (num(v) * 100).toLocaleString("ko-KR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }) + "%";
+}
+
+function unitSize(u){
+  if (u === "stack") return STACK;
+  if (u === "shulker") return SHULKER;
+  return 1;
+}
+
+function perItem(base){
+  const value = num(document.getElementById(base + "_value").value);
+  const unit = document.getElementById(base + "_unit").value;
+  return value / unitSize(unit);
+}
+
+function goldenCarrot(){
+  const goldBlock = perItem("price_goldblock");
+  const carrotCrate = perItem("price_carrotcrate");
+  const carrotOne = carrotCrate > 0 ? carrotCrate / 9 : 0;
+  const nuggetOne = goldBlock > 0 ? goldBlock / 81 : 0;
+  return carrotOne + nuggetOne * 8;
+}
+
+function bonusRate(){
+  return num(document.getElementById("bonusRate").value);
+}
+
+function withBonus(raw){
+  return raw / (1 + bonusRate());
+}
+
+function build(){
+  const p = {
+    e: perItem("price_eogyeol"),
+    s: perItem("price_sora"),
+    gc: goldenCarrot(),
+    magma: perItem("price_magma"),
+    meongge: perItem("price_meongge"),
+    haesam: perItem("price_haesam"),
+    kijo: perItem("price_kijo"),
+    ghast: perItem("price_ghast"),
+    eternity: perItem("price_eternity"),
+    transcend: perItem("price_transcend"),
+    divine: perItem("price_divine"),
+    magicon: perItem("price_magicon"),
+    newmenia: perItem("price_newmenia"),
+    stella: perItem("price_stella")
+  };
+
+  const runes = [
+    {
+      name: "투시",
+      sell: num(document.getElementById("sell_투시").value),
+      detail: [
+        ["어색한 결정 × 12", p.e * 12],
+        ["황금당근 × 1", p.gc],
+        ["소라 × 1", p.s],
+        ["영원 × 2", p.eternity * 2]
+      ]
+    },
+    {
+      name: "저항",
+      sell: num(document.getElementById("sell_저항").value),
+      detail: [
+        ["어색한 결정 × 12", p.e * 12],
+        ["마그마크림 × 1", p.magma],
+        ["소라 × 1", p.s],
+        ["초월 × 2", p.transcend * 2]
+      ]
+    },
+    {
+      name: "치유",
+      sell: num(document.getElementById("sell_치유").value),
+      detail: [
+        ["어색한 결정 × 14", p.e * 14],
+        ["키조개 × 1", p.kijo],
+        ["소라 × 1/3", p.s / 3],
+        ["매지콘 × 2", p.magicon * 2]
+      ]
+    },
+    {
+      name: "호흡",
+      sell: num(document.getElementById("sell_호흡").value),
+      detail: [
+        ["어색한 결정 × 14", p.e * 14],
+        ["멍게 × 1", p.meongge],
+        ["마그마크림 × 1/3", p.magma / 3],
+        ["소라 × 1", p.s],
+        ["신성 × 2", p.divine * 2]
+      ]
+    },
+    {
+      name: "성급",
+      sell: num(document.getElementById("sell_성급").value),
+      detail: [
+        ["어색한 결정 × 14", p.e * 14],
+        ["해삼 × 1", p.haesam],
+        ["키조개 × 1/3", p.kijo / 3],
+        ["소라 × 1", p.s],
+        ["초월 × 2", p.transcend * 2]
+      ]
+    },
+    {
+      name: "반감",
+      sell: num(document.getElementById("sell_반감").value),
+      detail: [
+        ["어색한 결정 × 14", p.e * 14],
+        ["키조개 × 1", p.kijo],
+        ["해삼 × 1/3", p.haesam / 3],
+        ["소라 × 1", p.s],
+        ["뉴메니아 × 1", p.newmenia]
+      ]
+    },
+    {
+      name: "경험",
+      sell: num(document.getElementById("sell_경험").value),
+      detail: [
+        ["어색한 결정 × 18", p.e * 18],
+        ["가스트 눈물 × 1", p.ghast],
+        ["해삼 × 1", p.haesam],
+        ["소라 × 1", p.s],
+        ["스텔라 × 1", p.stella]
+      ]
     }
+  ];
 
-    const qty = data.qty[i];
-    const cost = perUnit*qty*count;
-    total += cost;
+  return runes.map(r => {
+    const raw = r.detail.reduce((a, b) => a + b[1], 0);
+    const cost = withBonus(raw);
+    const profit = r.sell - cost;
+    const roi = cost ? profit / cost : 0;
+    
+    const eogyeolUse = r.detail.find(d=>d[0].includes("어색한 결정")) ? parseFloat(r.detail.find(d=>d[0].includes("어색한 결정"))[0].match(/\d+/)) : 0;
+    const eogyeolShulkerProfit = eogyeolUse ? profit * (1728 / eogyeolUse) : 0;
+    return {...r, cost, profit, roi, eogyeolUse, eogyeolShulkerProfit};
 
-    const qtyDisplay = (qty % 1 !== 0) ? qty.toFixed(2) : qty;
-    const perUnitDisplay = perUnit.toFixed(2);
-    const costDisplay = cost.toFixed(2);
-
-    detail += `${data.names[i]} 1개당 ${perUnitDisplay} × ${qtyDisplay}개 = ${costDisplay}<br>`;
-  }
-  return {total, detail};
+  });
 }
 
-function updateCalc() {
-  let countA = parseFloat(document.getElementById("qty_a").value) || 0;
-  let countB = parseFloat(document.getElementById("qty_b").value) || 0;
-  let countC = parseFloat(document.getElementById("qty_c").value) || 0;
-  const enhance = parseFloat(document.getElementById("enhance").value) || 0;
+function render(){
+  const data = build();
 
-  function calcResult(priceIds, unitIds, runeKey, count, sellId, resultId){
-    const r = calcRune(priceIds, unitIds, runeKey, count);
-    const sell = parseFloat(document.getElementById(sellId).value) || 1;
+  document.getElementById("mobileResults").innerHTML = data.map(r => {
+    const plus = r.profit >= 0;
+    return `
+      <div class="mini-card">
+        <div class="mini-head">
+          <span>${r.name}</span>
+          <span class="${plus ? "plus" : "minus"}">${plus ? "+" : ""}${fmt1(r.profit)}</span>
+        </div>
+        <div class="mini-grid">
+          <div class="stat ${r.roi >= 0 ? "plus" : "minus"}">이율<br>${r.roi >= 0 ? "+" : ""}${pct(r.roi)}</div>
+          <div class="stat">원가<br>${fmt1(r.cost)}</div>
+          <div class="stat">판매가<br>${fmt1(r.sell)}</div>
+          <div class="stat ${r.profit>=0?"plus":"minus"}">어결1셜커<br>${fmt1(r.eogyeolShulkerProfit)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
 
-    const baseRevenue = sell*count;
-    const baseProfit = baseRevenue - r.total;
+  document.getElementById("recipeGrid").innerHTML = data.map(r => {
+    const rows = r.detail.map(d => `<div class="recipe-row"><span>${d[0]}</span><span>${fmt1(d[1])}</span></div>`).join("");
+    return `
+      <div class="recipe">
+        <div class="recipe-head">
+          <span>${r.name}</span>
+          <span>${fmt1(r.cost)}</span>
+        </div>
+        ${rows}
+        <div class="recipe-total">
+          <span>생활강화 반영 원가</span>
+          <span>${fmt1(r.cost)}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
 
-    const revenue = baseRevenue*(1 + enhance);
-    const profit = revenue - r.total;
-    const profitIncrease = profit - baseProfit;
-
-    document.getElementById(resultId).innerHTML =
-      `제작비용: ${r.total.toFixed(2)} / 이윤: ${profit.toFixed(2)} ` +
-      `<span class="enhance-text">(+${(enhance*100).toFixed(0)}% 강화, +${profitIncrease.toFixed(2)})</span>`;
-
-    return r.detail;
-  }
-
-  const detailA = calcResult(["price_a1","price_a2","price_a3","price_a4"], ["unit_a1","unit_a2","unit_a3","unit_a4"], "a", countA, "sell_a", "result_a");
-  const detailB = calcResult(["price_b1","price_b2","price_b3","price_b4","price_b5"], ["unit_b1","unit_b2","unit_b3","unit_b4","unit_b5"], "b", countB, "sell_b", "result_b");
-  const detailC = calcResult(["price_c1","price_c2","price_c3","price_c4","price_c5"], ["unit_c1","unit_c2","unit_c3","unit_c4","unit_c5"], "c", countC, "sell_c", "result_c");
-
-  document.getElementById("detailedCalc").innerHTML =
-    `<h4>투시룬</h4>${detailA}<h4>호흡룬</h4>${detailB}<h4>성급룬</h4>${detailC}`;
+  saveState();
 }
 
-document.querySelectorAll("input, select").forEach(inp => {
-  inp.addEventListener("input", updateCalc);
-  inp.addEventListener("change", updateCalc);
+function applyDefaults(){
+  document.getElementById("bonusRate").value = "0";
+  for (const id of INPUT_IDS){
+    if (id === "bonusRate") continue;
+    const el = document.getElementById(id);
+    if (!el) continue;
+    if (el.tagName === "SELECT"){
+      el.value = "item";
+    } else {
+      el.value = "";
+    }
+  }
+  for (const [id, value] of Object.entries(SELL_DEFAULTS)){
+    document.getElementById(id).value = value;
+  }
+}
+
+function saveState(){
+  const state = {};
+  for (const id of INPUT_IDS){
+    const el = document.getElementById(id);
+    if (el) state[id] = el.value;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState(){
+  applyDefaults();
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const state = JSON.parse(raw);
+    for (const id of INPUT_IDS){
+      const el = document.getElementById(id);
+      if (el && state[id] !== undefined) el.value = state[id];
+    }
+  } catch (e) {}
+  for (const [id, value] of Object.entries(SELL_DEFAULTS)){
+    const el = document.getElementById(id);
+    if (el && (el.value === "" || el.value == null)) el.value = value;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadState();
+  document.querySelectorAll("input,select").forEach(el => {
+    el.addEventListener("input", render);
+    el.addEventListener("change", render);
+  });
+  render();
 });
-
-updateCalc();
 </script>
+
 </body>
 </html>
