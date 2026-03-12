@@ -264,7 +264,7 @@ function buildData(){
 function makeSaleInput(recipe){
   return `
     <div class="sale-box">
-      <input id="${saleInputId(recipe.key)}" type="number" step="0.1" value="${recipe.max}">
+      <input id="${saleInputId(recipe.key)}" type="number" step="1" inputmode="numeric" value="${recipe.max}">
       <div class="sale-hint">기본 최대가</div>
     </div>`;
 }
@@ -310,7 +310,7 @@ function render(){
           <div class="sale-hint">정렬 기준: 현재 손익</div>
         </div>
         <div class="sale-box">
-          <input id="${saleInputId(r.key)}" type="number" step="0.1" value="${r.sale}">
+          <input id="${saleInputId(r.key)}" type="number" step="1" inputmode="numeric" value="${r.sale}">
           <div class="sale-hint">판매가</div>
         </div>
       </div>
