@@ -40,7 +40,7 @@
     .tier-badge{font-size:12px;color:#93c5fd;font-weight:600}
     .plus{color:var(--good)}
     .minus{color:var(--bad)}
-    .mini-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+    .mini-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
     .stat{background:#1f2937;padding:8px;border-radius:8px;font-size:12px;line-height:1.4}
     .stat.plus{color:var(--good)}
     .stat.minus{color:var(--bad)}
@@ -50,9 +50,45 @@
     .recipe-grid{display:grid;gap:10px}
     .recipe{background:#111827;border-radius:10px;padding:10px}
     .recipe-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:15px;color:#dbeafe;font-weight:700}
-    .recipe-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:4px 0;color:#d1d5db}
-    .recipe-total{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.12);display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+    .recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;margin:4px 0;color:#d1d5db;max-width:460px}
+    .recipe-total{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.12);display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;font-weight:700;max-width:460px}
     .muted{color:#9ca3af}
+    .recipe-row span:last-child,.recipe-total span:last-child{text-align:right}
+
+    .detail-btn{
+      margin-top:8px;
+      background:#1d4ed8;
+      border:1px solid #60a5fa;
+      color:#dbeafe;
+      font-size:12px;
+      font-weight:600;
+      padding:8px 12px;
+      border-radius:8px;
+      width:auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      align-self:flex-start;
+    }
+    .detail-btn:hover{
+      background:#2563eb;
+    }
+    .inline-detail{
+      margin-top:10px;
+      background:#0f172a;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+      padding:10px;
+    }
+    .inline-detail .recipe-row{
+      margin:6px 0;
+    }
+    .inline-detail .recipe-total{
+      margin-top:8px;
+    }
+    .hidden-front{
+      display:none !important;
+    }
     @media (min-width:781px){.recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media (max-width:780px){
       body{padding:10px}
@@ -61,6 +97,8 @@
       .mini-grid{grid-template-columns:1fr 1fr}
       .recipe-head,.mini-head{flex-direction:column}
       .sale-box{grid-template-columns:minmax(0,1fr) 80px;min-width:0;width:100%}
+      .detail-btn{width:100%;display:flex}
+      .recipe-row,.recipe-total{max-width:none;grid-template-columns:minmax(0,1fr) 72px}
     }
   </style>
 </head>
@@ -104,7 +142,7 @@
     <div id="mobileResults" class="mobile-results"></div>
   </div>
 
-  <div class="card">
+  <div class="card hidden-front" id="detailRecipeSection">
     <h2>상세 레시피</h2>
     <div id="recipeGrid" class="recipe-grid"></div>
   </div>
@@ -119,6 +157,7 @@ const BOX_SHULKER = BOX * SHULKER;
 const STORAGE_KEY = 'chef_calc_v2';
 const FILTERS = ['전체','1차','2차','3차','4차'];
 let currentFilter = '전체';
+let openedDetailKey = null;
 
 const PRICE_FIELDS = [
   {id:'price_t1cropbox', label:'무/고구마/콩/블루베리 상자', units:['item','stack','shulker']},
@@ -181,6 +220,13 @@ function unitSize(unit){
 function num(v){ const n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
 function fmt1(v){ return num(v).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
 function fmt0(v){ return Math.round(num(v)).toLocaleString('ko-KR'); }
+function fmtRatio(v){
+  return (num(v)*100).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
+}
+function shulkerValue(v){
+  return num(v) * SHULKER;
+}
+
 function bonusRate(){ return num(document.getElementById('bonusRate').value); }
 function withBonus(raw){ return raw / (1 + bonusRate()); }
 function perUnit(id){
@@ -255,8 +301,11 @@ function buildData(){
     const saleEl = document.getElementById(saleInputId(r.key));
     const sale = saleEl ? num(saleEl.value) : r.max;
     const profit = sale - cost;
-    const roi = cost ? profit / cost : 0;
-    return {...r, detail, raw, cost, sale, profit, roi};
+    const roi = cost > 0 ? (profit / cost) : (sale > 0 ? 1 : 0);
+    const detailRatio = raw > 0
+      ? detail.map(([name, value]) => [name, value, value / raw])
+      : detail.map(([name, value]) => [name, value, 0]);
+    return {...r, detail, detailRatio, raw, cost, sale, profit, roi};
   }).filter(r => currentFilter === '전체' || r.tier === currentFilter)
     .sort((a,b)=>b.profit - a.profit);
 }
@@ -299,6 +348,20 @@ function attachSaleEvents(){
   });
 }
 
+
+function attachDetailEvents(){
+  document.querySelectorAll('[data-detail-key]').forEach(btn => {
+    if(btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.detailKey;
+      openedDetailKey = (openedDetailKey === key) ? null : key;
+      render();
+    });
+  });
+}
+
 function render(){
   const data = buildData();
 
@@ -317,11 +380,29 @@ function render(){
       <div class="mini-grid">
         <div class="stat">원가<br>${fmt1(r.cost)}</div>
         <div class="stat">판매가<br>${fmt1(r.sale)}</div>
+        <div class="stat">1셜커 판매가<br>${fmt0(shulkerValue(r.sale))}</div>
         <div class="stat ${r.profit >= 0 ? 'plus' : 'minus'}">손익<br>${r.profit >= 0 ? '+' : ''}${fmt1(r.profit)}</div>
+        <div class="stat ${r.profit >= 0 ? 'plus' : 'minus'}">1셜커 이익<br>${r.profit >= 0 ? '+' : ''}${fmt0(shulkerValue(r.profit))}</div>
         <div class="stat ${r.roi >= 0 ? 'plus' : 'minus'}">이율<br>${r.roi >= 0 ? '+' : ''}${(r.roi*100).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}%</div>
-        <div class="stat">최대 상점가<br>${fmt0(r.max)}</div>
-        <div class="stat">원재료 합<br>${fmt1(r.raw)}</div>
+        ${Math.abs(r.sale - r.max) > 0.000001 ? `<div class="stat">최대 상점가<br>${fmt0(r.max)}</div>` : ''}
+        ${Math.abs(r.cost - r.raw) > 0.000001 ? `<div class="stat">원재료 합<br>${fmt1(r.raw)}</div>` : ''}
       </div>
+
+      <button class="detail-btn" data-detail-key="${r.key}">
+        ${openedDetailKey === r.key ? '상세 레시피 닫기' : '상세 레시피 보기'}
+      </button>
+
+      ${openedDetailKey === r.key ? `
+        <div class="inline-detail">
+          ${r.detailRatio.map(d => `<div class="recipe-row"><span>${d[0]} <span class="muted">(${fmtRatio(d[2])})</span></span><span>${fmt1(d[1])}</span></div>`).join('')}
+          ${Math.abs(r.cost - r.raw) > 0.000001 ? `<div class="recipe-total"><span>원재료 합</span><span>${fmt1(r.raw)}</span></div>` : ''}
+          <div class="recipe-total"><span>원가</span><span>${fmt1(r.cost)}</span></div>
+          <div class="recipe-total"><span>판매가</span><span>${fmt1(r.sale)}</span></div>
+          <div class="recipe-total"><span>1셜커 판매가</span><span>${fmt0(shulkerValue(r.sale))}</span></div>
+          <div class="recipe-total"><span>1셜커 이익</span><span>${r.profit >= 0 ? '+' : ''}${fmt0(shulkerValue(r.profit))}</span></div>
+          ${Math.abs(r.sale - r.max) > 0.000001 ? `<div class="recipe-total"><span>최대 상점가</span><span>${fmt0(r.max)}</span></div>` : ''}
+        </div>
+      ` : ''}
     </div>
   `).join('');
 
@@ -331,15 +412,18 @@ function render(){
         <span>${r.name} <span class="tier-badge">${r.tier}</span></span>
         <span class="${r.profit >= 0 ? 'plus' : 'minus'}">손익 ${r.profit >= 0 ? '+' : ''}${fmt1(r.profit)}</span>
       </div>
-      ${r.detail.map(d => `<div class="recipe-row"><span>${d[0]}</span><span>${fmt1(d[1])}</span></div>`).join('')}
-      <div class="recipe-total"><span>원재료 합</span><span>${fmt1(r.raw)}</span></div>
+      ${r.detailRatio.map(d => `<div class="recipe-row"><span>${d[0]} <span class="muted">(${fmtRatio(d[2])})</span></span><span>${fmt1(d[1])}</span></div>`).join('')}
+      ${Math.abs(r.cost - r.raw) > 0.000001 ? `<div class="recipe-total"><span>원재료 합</span><span>${fmt1(r.raw)}</span></div>` : ''}
       <div class="recipe-total"><span>원가</span><span>${fmt1(r.cost)}</span></div>
       <div class="recipe-total"><span>판매가</span><span>${fmt1(r.sale)}</span></div>
-      <div class="recipe-total"><span>최대 상점가</span><span>${fmt0(r.max)}</span></div>
+      <div class="recipe-total"><span>1셜커 판매가</span><span>${fmt0(shulkerValue(r.sale))}</span></div>
+      <div class="recipe-total"><span>1셜커 이익</span><span>${r.profit >= 0 ? '+' : ''}${fmt0(shulkerValue(r.profit))}</span></div>
+      ${Math.abs(r.sale - r.max) > 0.000001 ? `<div class="recipe-total"><span>최대 상점가</span><span>${fmt0(r.max)}</span></div>` : ''}
     </div>
   `).join('');
 
   attachSaleEvents();
+  attachDetailEvents();
   saveState();
 }
 
@@ -355,7 +439,7 @@ function applyDefaults(){
 }
 
 function saveState(){
-  const state = {currentFilter};
+  const state = {currentFilter, openedDetailKey};
   const bonus = document.getElementById('bonusRate');
   if(bonus) state.bonusRate = bonus.value;
   PRICE_FIELDS.forEach(f => {
@@ -379,6 +463,7 @@ function loadState(){
     const state = JSON.parse(raw);
     if(state.bonusRate !== undefined) document.getElementById('bonusRate').value = state.bonusRate;
     if(state.currentFilter) currentFilter = state.currentFilter;
+    if(state.openedDetailKey !== undefined) openedDetailKey = state.openedDetailKey;
     PRICE_FIELDS.forEach(f => {
       const v = document.getElementById(f.id + '_value');
       const u = document.getElementById(f.id + '_unit');
