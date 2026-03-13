@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>동협 계산기</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.78);
+      --panel-2: rgba(30, 41, 59, 0.9);
+      --line: rgba(148, 163, 184, 0.18);
+      --text: #e5eefc;
+      --muted: #94a3b8;
+      --accent: #7c3aed;
+      --accent-2: #38bdf8;
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --shadow: 0 20px 45px rgba(2, 8, 23, 0.42);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Pretendard, "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.26), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+
+    .hero {
+      margin-bottom: 22px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.88));
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 5vw, 40px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .hero .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .chip {
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(124, 58, 237, 0.28);
+      background: rgba(124, 58, 237, 0.12);
+      color: #ddd6fe;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 20px 22px 10px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+
+    .panel .sub {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .panel-body {
+      padding: 0 22px 22px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      padding: 18px 18px 20px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(2, 6, 23, 0.58);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.65;
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    textarea:focus {
+      border-color: rgba(56, 189, 248, 0.55);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+    }
+
+    .result-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .value {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .value.small {
+      font-size: clamp(22px, 3.2vw, 34px);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      margin-top: 8px;
+    }
+
+    .list {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(2, 6, 23, 0.42);
+    }
+
+    .list-head, .row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1.2fr) minmax(90px, 0.7fr) minmax(90px, 0.8fr) minmax(100px, 0.9fr);
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+    }
+
+    .list-head {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.85);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .row {
+      font-size: 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .row:last-child { border-bottom: 0; }
+    .right { text-align: right; }
+    .good { color: #86efac; }
+    .warn { color: #fcd34d; }
+
+    .foot {
+      margin-top: 18px;
+      padding: 18px 20px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.45);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .catalog {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(2, 6, 23, 0.34);
+    }
+
+    .mini h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
+    .mini p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1040px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .wrap { padding: 16px 12px 26px; }
+      .hero, .panel { border-radius: 20px; }
+      .panel-head, .panel-body { padding-left: 16px; padding-right: 16px; }
+      textarea { min-height: 210px; font-size: 15px; }
+      .list-head, .row {
+        grid-template-columns: 1.3fr 0.9fr 0.9fr 1fr;
+        font-size: 12px;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      .catalog { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>동협 계산기</h1>
+      <p>
+         이름 유사어 인식 · 셜·셋·개·만·천만 단위 계산 · 농작물/해산물은 상자 기준 계산
+      </p>
+      <div class="chips">
+        <span class="chip">1셜커 = 1,728개</span>
+        <span class="chip">1셋/1세트 = 64개</span>
+        <span class="chip">엔터만 쳐도 즉시 재계산</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>물품 → 총 동협 점수</h2>
+          <div class="sub">예시: <b>투시룬 1셜커</b>, <b>초월보석 59셋</b>, <b>블루베리 3셜</b>, <b>홍합 5셜</b></div>
+        </div>
+        <div class="panel-body">
+          <textarea id="itemsInput" spellcheck="false">투시룬 1셜커
+성급 1셜커</textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>합산 결과</h2>
+          <div class="sub"></div>
+        </div>
+        <div class="panel-body result-stack">
+          <div class="stat">
+            <div class="label">총 동협 점수</div>
+            <div class="value" id="totalPoints">0</div>
+            <div class="muted" id="totalPointsSub">0만점</div>
+          </div>
+          <div class="list">
+            <div class="list-head">
+              <div>품목</div><div class="right">수량</div><div class="right">개당 점수</div><div class="right">합계</div>
+            </div>
+            <div id="itemsRows"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>목표 점수 → 필요한 셜커</h2>
+          <div class="sub">예시: <b>성급 천만점</b>, <b>성급 룬 1천만</b>, <b>성급룬 10000000</b>, <b>성급 천만</b></div>
+        </div>
+        <div class="panel-body">
+          <textarea id="targetInput" spellcheck="false">성급 천만점
+성급 룬 1천만
+성급룬 10000000
+성급 천만</textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>필요 수량 결과</h2>
+          <div class="sub"></div>
+        </div>
+        <div class="panel-body result-stack">
+          <div class="list">
+            <div class="list-head">
+              <div>품목</div><div class="right">목표 점수</div><div class="right">개당 점수</div><div class="right">필요 셜커</div>
+            </div>
+            <div id="targetRows"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog">
+      <div class="mini">
+        <h3>지원 예시 별칭</h3>
+        <p>홍파 → 홍합 파스타, 초월보석 → 초월, 성급 → 성급룬, 투시 → 투시룬, 저항 → 저항룬, 영원/신성 같이 자주 줄여 쓰는 이름도 포함</p>
+      </div>
+      <div class="mini">
+        <h3></h3>
+        <p></p>
+      </div>
+    </section>
+
+    
+  </div>
+
+  <script>
+    const ITEM_POINTS = {
+      // 바닐라/낚시
+      '사과': 1, '정글나무원목': 1, '화강암': 1, '응회암': 1, '섬록암': 1,
+      '나무원목': 2, '자수정블록': 2, '뼈': 2, '실': 2, '썩은살점': 2,
+      '수지블록': 3, '거미눈': 3, '프리즈마린': 3,
+      '화로': 4, '엔더진주': 4,
+      '산호블록': 5, '발광석': 5, '독감자': 5,
+      '레드스톤블록': 20, '청금석블록': 20,
+      '철블록': 27, '금블록': 27,
+      '앵무조개껍질': 30,
+      '바다랜턴': 50, '다이아블록': 50,
+      '에메랄드블록': 80,
+      '드래곤머리': 300,
+      '네더라이트블록': 500,
+
+      // 낚시 스톤
+      '레어물의스톤': 300, '유니크물의스톤': 1000, '전설물의스톤': 5000, '신화물의스톤': 15000,
+
+      // 요리사
+      '고로케': 14,
+      '고구마맛탕': 46, '무트볼': 46, '베이글': 46, '타코': 46,
+      '브리또': 73, '감자튀김': 73, '블루베리치즈케이크': 73, '스테이크': 73,
+      '라면': 77, '콘마카로니': 77, '와플': 77, '마늘빵': 77,
+      '과일케이크': 81, '오믈렛': 81, '로스트치킨': 81, '팬케이크': 81,
+      '샌드위치': 122, '핫도그': 122,
+      '해물카레': 31, '소고기미역국': 68, '전복죽': 88, '홍합파스타': 135,
+
+      // 대장장이
+      '영원': 84, '신성': 84, '메지콘': 108, '초월': 114, '뉴메니아': 132, '스텔라': 1026,
+
+      // 연금술사
+      '저항룬': 420, '투시룬': 370, '호흡룬': 488, '성급룬': 591, '치유룬': 439, '반감룬': 458, '경험룬': 2375,
+
+      // 농부
+      '금별토마토': 32, '금별양상추': 32,
+      '금별딸기': 20, '금별파': 20, '금별옥수수': 20, '금별마늘': 20,
+      '금별블루베리': 12, '금별콩': 12, '금별무': 12, '금별고구마': 12,
+
+      // 다이버
+      '소라': 7, '굴': 7, '미역': 15, '키조개': 15,
+      '전복': 21, '멍게': 21, '홍합': 28, '해삼': 28,
+    };
+
+    const ALIASES = {
+
+      // 요리사
+      '홍파': '홍합파스타',
+      '홍합파': '홍합파스타',
+      '감튀' : '감자튀김',
+
+      // 연금술 룬
+      '성급': '성급룬',
+      '투시': '투시룬',
+      '저항': '저항룬',
+      '호흡': '호흡룬',
+      '치유': '치유룬',
+      '반감': '반감룬',
+      '경험': '경험룬',
+
+      // 대장장이
+      '초월보석': '초월',
+      '초월석': '초월',
+
+      // 낚시 스톤 축약
+      '레어물스': '레어물의스톤',
+      '유니크물스': '유니크물의스톤',
+      '전설물스': '전설물의스톤',
+      '신화물스': '신화물의스톤',
+
+      // 블록류 축약
+      '다블': '다이아블록',
+      '다이아': '다이아블록',
+
+      '에블': '에메랄드블록',
+      '에메': '에메랄드블록',
+
+      '금블': '금블록',
+      '철블': '철블록',
+
+      '청금블': '청금석블록',
+      '청금': '청금석블록',
+
+      '레드블': '레드스톤블록',
+      '레드': '레드스톤블록',
+
+      // 네더라이트
+      '네더': '네더라이트블록',
+      '네더라이트': '네더라이트블록',
+      '네더블럭': '네더라이트블록',
+      '네더블록': '네더라이트블록',
+      '네블': '네더라이트블록',
+
+      // 바다랜턴
+      '바랜': '바다랜턴',
+
+      // 농작물 (상자 기준)
+      '토마토': '금별토마토',
+      '양상추': '금별양상추',
+      '딸기': '금별딸기',
+      '파': '금별파',
+      '옥수수': '금별옥수수',
+      '마늘': '금별마늘',
+      '블루베리': '금별블루베리',
+      '콩': '금별콩',
+      '무': '금별무',
+      '고구마': '금별고구마',
+
+      // 농작물 상자 표현
+      '토마토상자': '금별토마토',
+      '양상추상자': '금별양상추',
+      '딸기상자': '금별딸기',
+      '파상자': '금별파',
+      '옥수수상자': '금별옥수수',
+      '마늘상자': '금별마늘',
+      '블루베리상자': '금별블루베리',
+      '콩상자': '금별콩',
+      '무상자': '금별무',
+      '고구마상자': '금별고구마',
+
+      '금별토마토상자': '금별토마토',
+      '금별양상추상자': '금별양상추',
+      '금별딸기상자': '금별딸기',
+      '금별파상자': '금별파',
+      '금별옥수수상자': '금별옥수수',
+      '금별마늘상자': '금별마늘',
+      '금별블루베리상자': '금별블루베리',
+      '금별콩상자': '금별콩',
+      '금별무상자': '금별무',
+      '금별고구마상자': '금별고구마',
+
+      // 해산물
+      '소라상자': '소라',
+      '굴상자': '굴',
+      '미역상자': '미역',
+      '키조개상자': '키조개',
+      '전복상자': '전복',
+      '멍게상자': '멍게',
+      '홍합상자': '홍합',
+      '해삼상자': '해삼',
+
+      // 해산물 일반 입력
+      '소라': '소라',
+      '굴': '굴',
+      '미역': '미역',
+      '키조개': '키조개',
+      '전복': '전복',
+      '멍게': '멍게',
+      '홍합': '홍합',
+      '해삼': '해삼',
+
+      // 농작물 금별 축약
+      '금토마토': '금별토마토',
+      '금양상추': '금별양상추',
+      '금딸기': '금별딸기',
+      '금파': '금별파',
+      '금옥수수': '금별옥수수',
+      '금마늘': '금별마늘',
+      '금블루베리': '금별블루베리',
+      '금콩': '금별콩',
+      '금무': '금별무',
+      '금고구마': '금별고구마'
+
+    };
+
+    const DISPLAY_NAMES = {
+      '레어물의스톤': '레어 물의 스톤',
+      '유니크물의스톤': '유니크 물의 스톤',
+      '전설물의스톤': '전설 물의 스톤',
+      '신화물의스톤': '신화 물의 스톤',
+      '홍합파스타': '홍합 파스타',
+
+      '금별토마토': '금별 토마토 상자',
+      '금별양상추': '금별 양상추 상자',
+      '금별딸기': '금별 딸기 상자',
+      '금별파': '금별 파 상자',
+      '금별옥수수': '금별 옥수수 상자',
+      '금별마늘': '금별 마늘 상자',
+      '금별블루베리': '금별 블루베리 상자',
+      '금별콩': '금별 콩 상자',
+      '금별무': '금별 무 상자',
+      '금별고구마': '금별 고구마 상자',
+
+      '소라': '소라 상자',
+      '굴': '굴 상자',
+      '미역': '미역 상자',
+      '키조개': '키조개 상자',
+      '전복': '전복 상자',
+      '멍게': '멍게 상자',
+      '홍합': '홍합 상자',
+      '해삼': '해삼 상자'
+    };
+
+    const itemsInput = document.getElementById('itemsInput');
+    const targetInput = document.getElementById('targetInput');
+    const totalPointsEl = document.getElementById('totalPoints');
+    const totalPointsSubEl = document.getElementById('totalPointsSub');
+    const itemsRowsEl = document.getElementById('itemsRows');
+    const targetRowsEl = document.getElementById('targetRows');
+
+    function normalize(text) {
+      return (text || '')
+        .toLowerCase()
+        .replace(/\([^)]*\)/g, ' ')
+        .replace(/\[[^\]]*\]/g, ' ')
+        .replace(/[|,]/g, ' ')
+        .replace(/\s+/g, '')
+        .replace(/[?？!！~～.。,]/g, '');
+    }
+
+    function prettifyName(name) {
+      return DISPLAY_NAMES[name] || name;
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat('ko-KR').format(Math.round(value));
+    }
+
+    function formatDecimal(value, digits = 1) {
+      return new Intl.NumberFormat('ko-KR', {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      }).format(value);
+    }
+
+    function formatMan(value) {
+      return `${formatDecimal(value / 10000, 1)}만점`;
+    }
+
+    function findItemInText(text) {
+      const normalized = normalize(text);
+      let best = '';
+
+      const candidates = [];
+      Object.keys(ITEM_POINTS).forEach(key => candidates.push(key));
+      Object.keys(ALIASES).forEach(key => candidates.push(key));
+
+      for (const raw of candidates) {
+        const target = normalize(raw);
+        if (!target) continue;
+        if (normalized.includes(target) && target.length > best.length) {
+          best = raw;
+        }
+      }
+
+      if (!best) return null;
+      return ALIASES[best] || best;
+    }
+
+    function parseKoreanNumber(raw) {
+      if (!raw) return NaN;
+      const cleaned = raw.replace(/[,\s점]/g, '');
+
+      const unitOnlyMap = {
+        '억': 100000000,
+        '천만': 10000000,
+        '백만': 1000000,
+        '십만': 100000,
+        '만': 10000,
+        '천': 1000,
+        '백': 100,
+        '십': 10,
+      };
+
+      if (unitOnlyMap[cleaned]) return unitOnlyMap[cleaned];
+
+      const match = cleaned.match(/^([0-9]+(?:\.[0-9]+)?)(억|천만|백만|십만|만|천|백|십)?$/);
+      if (!match) return NaN;
+
+      const num = parseFloat(match[1]);
+      const unit = match[2] || '';
+      return num * (unitOnlyMap[unit] || 1);
+    }
+
+    function quantityMultiplier(fragment) {
+      if (/(셜커|셜|shulker)/i.test(fragment)) return 1728;
+      if (/(세트|셋|set)/i.test(fragment)) return 64;
+      return 1;
+    }
+
+    const BOX_ITEMS = new Set([
+      '금별토마토', '금별양상추', '금별딸기', '금별파', '금별옥수수', '금별마늘',
+      '금별블루베리', '금별콩', '금별무', '금별고구마',
+      '소라', '굴', '미역', '키조개', '전복', '멍게', '홍합', '해삼'
+    ]);
+
+    function applyItemUnit(item, qty) {
+      if (!qty || !BOX_ITEMS.has(item)) return qty;
+      return qty * 9;
+    }
+
+    function extractNumbersWithUnits(text) {
+      const re = /([0-9]+(?:\.[0-9]+)?(?:억|천만|백만|십만|만|천|백|십)?|억|천만|백만|십만|만|천|백|십)(?:점)?/g;
+
+      return [...text.matchAll(re)].map(m => ({
+        raw: m[1],
+        value: parseKoreanNumber(m[1]),
+        index: m.index || 0,
+      })).filter(v => !Number.isNaN(v.value));
+    }
+
+    function parseItemLine(line) {
+      const normalized = line.trim();
+      if (!normalized) return [];
+
+      const results = [];
+      let remaining = normalized;
+      let guard = 0;
+
+      while (remaining && guard < 12) {
+        guard += 1;
+        const item = findItemInText(remaining);
+        if (!item) break;
+
+        const itemPattern = new RegExp(item.split('').join('\\s*'));
+        const aliasKeys = Object.keys(ALIASES).filter(k => ALIASES[k] === item).sort((a,b) => b.length-a.length);
+        const searchTerms = [item, ...aliasKeys].sort((a,b) => b.length-a.length);
+
+        let foundTerm = searchTerms.find(term => normalize(remaining).includes(normalize(term)));
+        if (!foundTerm) break;
+
+        const idx = normalize(remaining).indexOf(normalize(foundTerm));
+        const rawNorm = normalize(remaining);
+        const afterNorm = rawNorm.slice(idx + normalize(foundTerm).length);
+
+        const numMatch = afterNorm.match(/^([0-9]+(?:\.[0-9]+)?(?:억|천만|백만|십만|만|천|백|십)?)([가-힣a-zA-Z?？!！~～]*)?/);
+        let qty = null;
+        let consumedNormLength = normalize(foundTerm).length;
+
+        if (numMatch) {
+          const amount = parseKoreanNumber(numMatch[1]);
+          const mul = quantityMultiplier(numMatch[0]);
+          qty = applyItemUnit(item, amount * mul);
+          consumedNormLength += normalize(numMatch[0]).length;
+        } else {
+          const anyNum = extractNumbersWithUnits(remaining)[0];
+          qty = anyNum ? applyItemUnit(item, anyNum.value) : null;
+          consumedNormLength = rawNorm.length;
+        }
+
+        if (qty && ITEM_POINTS[item]) {
+          results.push({ item, qty, pointsEach: ITEM_POINTS[item], total: qty * ITEM_POINTS[item] });
+        }
+
+        const newNorm = rawNorm.slice(consumedNormLength);
+        if (!newNorm || newNorm === rawNorm) break;
+        remaining = newNorm;
+      }
+
+      return results;
+    }
+
+    function parseTargetLine(line) {
+      const item = findItemInText(line);
+      if (!item) return null;
+
+      const nums = extractNumbersWithUnits(line);
+      if (!nums.length) return null;
+
+      const score = nums[0].value;
+      if (!score || !ITEM_POINTS[item]) return null;
+
+      const needCount = score / ITEM_POINTS[item];
+      const needShulker = (BOX_ITEMS.has(item) ? (needCount / 9) : needCount) / 1728;
+
+      return { item, score, pointsEach: ITEM_POINTS[item], needShulker };
+    }
+
+    function rowHtml(cols) {
+      return `<div class="row">
+        <div>${cols[0]}</div>
+        <div class="right">${cols[1]}</div>
+        <div class="right">${cols[2]}</div>
+        <div class="right">${cols[3]}</div>
+      </div>`;
+    }
+
+    function recalcItems() {
+      const text = itemsInput.value;
+      localStorage.setItem('donghyup_items_input', text);
+      const lines = text.split(/\n+/).map(v => v.trim()).filter(Boolean);
+
+      let total = 0;
+      const rows = [];
+
+      for (const line of lines) {
+        const parsed = parseItemLine(line);
+        if (!parsed.length) {
+          rows.push(rowHtml([`<span class="warn">인식 실패</span>`, '-', '-', line]));
+          continue;
+        }
+        for (const entry of parsed) {
+          total += entry.total;
+          rows.push(rowHtml([
+            prettifyName(entry.item),
+            formatNumber(entry.qty),
+            formatNumber(entry.pointsEach),
+            `<span class="good">${formatNumber(entry.total)}</span>`
+          ]));
+        }
+      }
+
+      totalPointsEl.textContent = formatNumber(total);
+      totalPointsSubEl.textContent = formatMan(total);
+      itemsRowsEl.innerHTML = rows.length ? rows.join('') : rowHtml(['-', '-', '-', '-']);
+    }
+
+    function recalcTargets() {
+      const text = targetInput.value;
+      localStorage.setItem('donghyup_target_input', text);
+      const lines = text.split(/\n+/).map(v => v.trim()).filter(Boolean);
+
+      const rows = [];
+      let first = null;
+      for (const line of lines) {
+        const parsed = parseTargetLine(line);
+        if (!parsed) {
+          rows.push(rowHtml([`<span class="warn">인식 실패</span>`, '-', '-', line]));
+          continue;
+        }
+        if (!first) first = parsed;
+        rows.push(rowHtml([
+          prettifyName(parsed.item),
+          formatNumber(parsed.score),
+          formatNumber(parsed.pointsEach),
+          `<span class="good">${formatDecimal(parsed.needShulker, 1)}셜커</span>`
+        ]));
+      }
+
+      targetRowsEl.innerHTML = rows.length ? rows.join('') : rowHtml(['-', '-', '-', '-']);
+    }
+
+    function recalcAll() {
+      recalcItems();
+      recalcTargets();
+    }
+
+    const storedItems = localStorage.getItem('donghyup_items_input');
+    const storedTarget = localStorage.getItem('donghyup_target_input');
+    if (storedItems) itemsInput.value = storedItems;
+    if (storedTarget) targetInput.value = storedTarget;
+
+    [itemsInput, targetInput].forEach(el => {
+      el.addEventListener('input', recalcAll);
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          setTimeout(recalcAll, 0);
+        }
+      });
+    });
+
+    recalcAll();
+  </script>
+</body>
+</html>
