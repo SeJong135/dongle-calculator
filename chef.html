@@ -54,6 +54,11 @@
     .secondary-btn{background:#374151;border:1px solid #4b5563;color:#e5e7eb;font-weight:600}
     #discordPaste{max-width:300px;display:block}
     .paste-actions{max-width:300px}
+    .discord-apply-notice{max-width:760px;margin-top:10px;display:grid;gap:4px}
+    .discord-apply-line{font-size:13px;line-height:1.45}
+    .discord-apply-line.main{color:#bfdbfe;font-weight:700}
+    .discord-apply-line.sub{color:#facc15;font-weight:600}
+    .discord-apply-line.empty{color:#94a3b8;font-weight:500}
     .update-summary{display:grid;gap:8px;margin-top:12px;align-items:start;max-width:760px}
     .update-empty{font-size:13px;color:#94a3b8;margin-top:4px}
     .update-list{display:grid;gap:10px;justify-items:start;max-width:760px;width:100%}
@@ -196,7 +201,7 @@
       .sale-box{grid-template-columns:minmax(0,1fr) 80px;min-width:0;width:100%}
       .detail-btn{width:100%;display:flex}
       .recipe-row,.recipe-total{max-width:none;grid-template-columns:minmax(0,1fr) 72px}
-      #discordPaste,.paste-actions,.update-summary,.update-list{max-width:none;width:100%}
+      #discordPaste,.paste-actions,.update-summary,.update-list,.discord-apply-notice{max-width:none;width:100%}
       .update-item{
         grid-template-columns:1fr;
         align-items:flex-start;
@@ -273,6 +278,7 @@
       <button id="applyDiscordBtn" class="primary-btn">변경가 적용</button>
       <button id="resetDiscordBtn" class="secondary-btn">전체 초기화</button>
     </div>
+    <div id="discordApplyNotice" class="discord-apply-notice"></div>
     <div id="updateSummary" class="update-summary"></div>
   </div>
 
@@ -304,6 +310,7 @@ const DISCORD_TEXT_KEY = 'chef_calc_discord_text';
 const DISCORD_UPDATES_KEY = 'chef_calc_discord_updates';
 let currentFilter = '전체';
 let openedDetailKey = null;
+let saleState = {};
 
 const PRICE_FIELDS = [
   {id:'price_t1cropbox', label:'무/고구마/콩/블루베리 상자', units:['item','stack','shulker']},
@@ -440,23 +447,88 @@ function saleInputId(key){ return `sale_${key}`; }
 
 function normalizeName(name){
   return String(name || '')
-    .replace(/\s+/g,'')
-    .replace(/^소고기/, '')
-    .replace(/^퐁신/, '')
+    .replace(/:fried_egg:/g, '')
+    .replace(/🍳/g, '')
+    .replace(/[\[\]｜|]/g, ' ')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\d+(?:\.\d+)?\s*원?/g, ' ')
+    .replace(/[→>\-]+/g, ' ')
+    .replace(/^\s*소고기/, '')
+    .replace(/^\s*퐁신/, '')
     .replace(/파스타$/, ' 파스타')
+    .replace(/\s+/g,'')
     .trim();
 }
 
 function recipeNameMap(){
   const map = {};
+  const add = (alias, recipe) => {
+    if(!recipe || !alias) return;
+    map[normalizeName(alias)] = recipe;
+  };
+
   RECIPES.forEach(r => {
-    map[normalizeName(r.name)] = r;
+    add(r.name, r);
   });
-  map['미역국'] = RECIPES.find(r => r.key === 'seaweed_soup');
-  map['오믈렛'] = RECIPES.find(r => r.key === 'omelet');
-  map['홍합 파스타'] = RECIPES.find(r => r.key === 'mussel_pasta');
-  map['홍합파스타'] = RECIPES.find(r => r.key === 'mussel_pasta');
+
+  add('미역국', RECIPES.find(r => r.key === 'seaweed_soup'));
+  add('소고기미역국', RECIPES.find(r => r.key === 'seaweed_soup'));
+  add('오믈렛', RECIPES.find(r => r.key === 'omelet'));
+  add('퐁신 오믈렛', RECIPES.find(r => r.key === 'omelet'));
+  add('홍합 파스타', RECIPES.find(r => r.key === 'mussel_pasta'));
+  add('홍합파스타', RECIPES.find(r => r.key === 'mussel_pasta'));
+
+  add('샌드', RECIPES.find(r => r.key === 'sandwich'));
+  add('샌드위', RECIPES.find(r => r.key === 'sandwich'));
+  add('샌드위치', RECIPES.find(r => r.key === 'sandwich'));
+  add('핫도그', RECIPES.find(r => r.key === 'hotdog'));
+  add('스테이크', RECIPES.find(r => r.key === 'steak'));
+  add('감튀', RECIPES.find(r => r.key === 'fries'));
+  add('감자튀김', RECIPES.find(r => r.key === 'fries'));
+  add('와플', RECIPES.find(r => r.key === 'waffle'));
+  add('콘마카로니', RECIPES.find(r => r.key === 'corn_macaroni'));
+  add('콘 마카로니', RECIPES.find(r => r.key === 'corn_macaroni'));
+  add('고구마팬케이크', RECIPES.find(r => r.key === 'sweetpotato_pancake'));
+  add('고구마 팬케이크', RECIPES.find(r => r.key === 'sweetpotato_pancake'));
+  add('해물카레', RECIPES.find(r => r.key === 'sea_curry'));
+  add('미역국', RECIPES.find(r => r.key === 'seaweed_soup'));
+  add('라면', RECIPES.find(r => r.key === 'ramen'));
+  add('고구마맛탕', RECIPES.find(r => r.key === 'sweetpotato_candy'));
+  add('고구마 맛탕', RECIPES.find(r => r.key === 'sweetpotato_candy'));
+  add('마늘빵', RECIPES.find(r => r.key === 'garlic_bread'));
+  add('베이글', RECIPES.find(r => r.key === 'bagel'));
+  add('로스트치킨', RECIPES.find(r => r.key === 'roast_chicken'));
+  add('로스트 치킨', RECIPES.find(r => r.key === 'roast_chicken'));
+  add('과일케이크', RECIPES.find(r => r.key === 'fruit_cake'));
+  add('과일 케이크', RECIPES.find(r => r.key === 'fruit_cake'));
+  add('블루베리치즈케이크', RECIPES.find(r => r.key === 'blueberry_cheesecake'));
+  add('블루베리 치즈케이크', RECIPES.find(r => r.key === 'blueberry_cheesecake'));
+  add('브리또', RECIPES.find(r => r.key === 'burrito'));
+  add('고로케', RECIPES.find(r => r.key === 'croquette'));
+
   return map;
+}
+
+function resolveRecipeByName(rawName){
+  const map = recipeNameMap();
+  const normalized = normalizeName(rawName);
+  if(!normalized) return null;
+  if(map[normalized]) return map[normalized];
+
+  const exact = RECIPES.find(r => normalizeName(r.name) === normalized);
+  if(exact) return exact;
+
+  const partials = RECIPES.filter(r => {
+    const recipeNorm = normalizeName(r.name);
+    return recipeNorm.includes(normalized) || normalized.includes(recipeNorm);
+  });
+
+  if(partials.length === 1) return partials[0];
+
+  const prefix = RECIPES.filter(r => normalizeName(r.name).startsWith(normalized));
+  if(prefix.length === 1) return prefix[0];
+
+  return null;
 }
 
 function normalizeDiscordDisplayText(text){
@@ -464,7 +536,6 @@ function normalizeDiscordDisplayText(text){
 }
 
 function parseDiscordUpdates(text){
-  const map = recipeNameMap();
   const lines = String(text || '').split(/\n+/).map(v => v.trim()).filter(Boolean);
   const updates = [];
 
@@ -485,7 +556,7 @@ function parseDiscordUpdates(text){
       newValue = num(simpleMatch[3]);
     }
 
-    const recipe = map[normalizeName(rawName)];
+    const recipe = resolveRecipeByName(rawName);
     if(!recipe || !Number.isFinite(newValue)) return;
     updates.push({
       key: recipe.key,
@@ -516,6 +587,53 @@ function getStoredDiscordUpdates(){
   }catch(e){
     return [];
   }
+}
+
+function getDiscordApplyNotice(updates){
+  const safeUpdates = Array.isArray(updates) ? updates : [];
+  if(!safeUpdates.length){
+    return {
+      appliedLine: '',
+      missingLine: '아직 적용된 변경가가 없습니다.'
+    };
+  }
+
+  const appliedLine = `${safeUpdates.length}개 요리 가격을 반영했습니다.`;
+  const updatedKeys = new Set(safeUpdates.map(u => u.key));
+  const missingNames = RECIPES.filter(r => !updatedKeys.has(r.key)).map(r => r.name);
+
+  if(!missingNames.length){
+    return { appliedLine, missingLine: '모든 요리가 입력되었습니다.' };
+  }
+
+  if(missingNames.length <= 3){
+    return {
+      appliedLine,
+      missingLine: `${missingNames.join(', ')} 요리가 입력되지 않았습니다.`
+    };
+  }
+
+  return {
+    appliedLine,
+    missingLine: `${missingNames.length}개의 요리가 입력되지 않았습니다.`
+  };
+}
+
+function renderDiscordApplyNotice(updates = getStoredDiscordUpdates()){
+  const box = document.getElementById('discordApplyNotice');
+  if(!box) return;
+
+  const notice = getDiscordApplyNotice(updates);
+  const lines = [];
+
+  if(notice.appliedLine){
+    lines.push(`<div class="discord-apply-line main">${notice.appliedLine}</div>`);
+  }
+
+  const subClass = notice.appliedLine ? 'sub' : 'empty';
+  lines.push(`<div class="discord-apply-line ${subClass}">${notice.missingLine}</div>`);
+
+  box.innerHTML = lines.join('');
 }
 
 function renderUpdateSummary(){
@@ -591,20 +709,25 @@ function renderUpdateSummary(){
 
 function applyDiscordTextToSales(text){
   const updates = parseDiscordUpdates(text);
+  const saleMap = {};
+
   RECIPES.forEach(r => {
-    const el = document.getElementById(saleInputId(r.key));
-    if(el) el.value = r.max;
+    saleMap[r.key] = r.max;
   });
+
   updates.forEach(u => {
-    const el = document.getElementById(saleInputId(u.key));
-    if(el) el.value = u.newValue;
+    saleMap[u.key] = u.newValue;
   });
+
+  saleState = {...saleMap};
+
   const displayText = normalizeDiscordDisplayText(text);
   const textarea = document.getElementById('discordPaste');
   if(textarea) textarea.value = displayText;
   localStorage.setItem(DISCORD_TEXT_KEY, displayText || '');
   localStorage.setItem(DISCORD_UPDATES_KEY, JSON.stringify(updates));
   render();
+  renderDiscordApplyNotice(updates);
 }
 
 function resetDiscordPricing(){
@@ -612,11 +735,12 @@ function resetDiscordPricing(){
   if(textarea) textarea.value = '';
   localStorage.removeItem(DISCORD_TEXT_KEY);
   localStorage.removeItem(DISCORD_UPDATES_KEY);
+  saleState = {};
   RECIPES.forEach(r => {
-    const el = document.getElementById(saleInputId(r.key));
-    if(el) el.value = r.max;
+    saleState[r.key] = r.max;
   });
   render();
+  renderDiscordApplyNotice([]);
 }
 
 function buildAllData(){
@@ -625,8 +749,7 @@ function buildAllData(){
     const detail = r.detail.map(([name, fn]) => [name, fn(p)]);
     const raw = detail.reduce((a,b)=>a+b[1],0);
     const cost = withBonus(raw);
-    const saleEl = document.getElementById(saleInputId(r.key));
-    const sale = saleEl ? num(saleEl.value) : r.max;
+    const sale = saleState[r.key] !== undefined ? num(saleState[r.key]) : r.max;
     const profit = sale - cost;
     const roi = cost > 0 ? (profit / cost) : (sale > 0 ? 1 : 0);
     const detailRatio = raw > 0
@@ -659,11 +782,13 @@ function attachSaleEvents(){
 
     // 입력 중에는 저장만 하고 재렌더 안 함
     el.addEventListener('input', () => {
+      saleState[r.key] = num(el.value);
       saveState();
     });
 
     // 포커스가 빠질 때 반영
     el.addEventListener('blur', () => {
+      saleState[r.key] = num(el.value);
       saveState();
       render();
     });
@@ -783,8 +908,7 @@ function saveState(){
     if(u) state[f.id + '_unit'] = u.value;
   });
   RECIPES.forEach(r => {
-    const el = document.getElementById(saleInputId(r.key));
-    if(el) state[saleInputId(r.key)] = el.value;
+    state[saleInputId(r.key)] = saleState[r.key] !== undefined ? saleState[r.key] : r.max;
   });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -811,11 +935,10 @@ function loadState(){
 }
 
 function hydrateSaleDefaults(){
+  saleState = {};
   RECIPES.forEach(r => {
-    const el = document.getElementById(saleInputId(r.key));
-    if(!el) return;
     const saved = window.__saleState?.[saleInputId(r.key)];
-    el.value = saved !== undefined ? saved : r.max;
+    saleState[r.key] = saved !== undefined ? num(saved) : r.max;
   });
 }
 
@@ -856,6 +979,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyDiscordTextToSales(savedDiscordText);
   } else {
     renderUpdateSummary();
+    renderDiscordApplyNotice([]);
   }
   render();
   buildFilterBar();
