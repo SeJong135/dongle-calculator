@@ -83,6 +83,7 @@
     .update-item.m2{border-left:5px solid #eab308}
     .update-item.m3{border-left:5px solid #f59e0b}
     .update-item.m4{border-left:5px solid #fb7185}
+    .update-item.m5{border-left:5px solid #ef4444}
     .update-main{
       display:flex;
       align-items:center;
@@ -648,7 +649,7 @@ function renderUpdateSummary(){
   const resultMap = Object.fromEntries(buildAllData().map(r => [r.key, r]));
   const visible = updates
     .map(u => ({...u, bucket: u.diffFromMax >= 0 ? 'max' : Math.abs(Math.round(u.diffFromMax)), result: resultMap[u.key]}))
-    .filter(u => u.bucket === 'max' || (Number.isInteger(u.bucket) && u.bucket >= 1 && u.bucket <= 4))
+    .filter(u => u.bucket === 'max' || (Number.isInteger(u.bucket) && u.bucket >= 1 && u.bucket <= 5))
     .sort((a,b) => {
       if(a.diffFromMax !== b.diffFromMax) return b.diffFromMax - a.diffFromMax;
       if(a.newValue !== b.newValue) return b.newValue - a.newValue;
@@ -659,7 +660,7 @@ function renderUpdateSummary(){
     });
 
   if(!visible.length){
-    box.innerHTML = '<div class="update-empty">표시할 음식이 없습니다.</div>';
+    box.innerHTML = '<div class="update-empty">현재 최고가 ~ -5 범위의 요리가 없습니다.</div>';
     return;
   }
 
