@@ -18,7 +18,7 @@
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:Pretendard,system-ui,sans-serif;background:#0f172a;color:var(--text);padding:14px}
-    .wrap{max-width:1280px;margin:auto}
+    .wrap{max-width:1180px;margin:auto}
     .card{background:var(--panel);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
     h1{margin:0;font-size:28px}
     h2{margin:0 0 10px;font-size:18px;color:#dbeafe}
@@ -47,6 +47,100 @@
     .sale-box{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:6px;align-items:center;min-width:220px}
     .sale-box input{padding:8px 10px}
     .sale-hint{font-size:11px;color:#94a3b8}
+    textarea{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;color:white;width:100%;min-height:180px;resize:vertical;font-family:inherit}
+    .paste-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .paste-actions button{width:auto;padding:8px 14px;border-radius:9px;font-size:13px}
+    .primary-btn{background:#1d4ed8;border:1px solid #60a5fa;color:#dbeafe;font-weight:600}
+    .secondary-btn{background:#374151;border:1px solid #4b5563;color:#e5e7eb;font-weight:600}
+    #discordPaste{max-width:300px;display:block}
+    .paste-actions{max-width:300px}
+    .update-summary{display:grid;gap:8px;margin-top:12px;align-items:start;max-width:760px}
+    .update-empty{font-size:13px;color:#94a3b8;margin-top:4px}
+    .update-list{display:grid;gap:10px;justify-items:start;max-width:760px;width:100%}
+    .update-header{display:grid;grid-template-columns:332px 116px 116px 116px;gap:8px;align-items:end;width:704px;max-width:100%}
+    .update-header-spacer{height:1px}
+    .update-header-label{font-size:17px;font-weight:800;color:#bfdbfe;white-space:nowrap;text-align:center;display:flex;align-items:center;justify-content:center;height:28px;width:100%}
+    .update-item{
+      background:transparent;
+      border:none;
+      border-radius:0;
+      padding:0;
+      box-shadow:none;
+      display:grid;
+      grid-template-columns:332px 116px 116px 116px;
+      align-items:center;
+      gap:8px;
+      width:704px;
+      max-width:100%;
+    }
+    .update-item.max{border-left:5px solid #10b981}
+    .update-item.m1{border-left:5px solid #84cc16}
+    .update-item.m2{border-left:5px solid #eab308}
+    .update-item.m3{border-left:5px solid #f59e0b}
+    .update-item.m4{border-left:5px solid #fb7185}
+    .update-main{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+      white-space:nowrap;
+      overflow:hidden;
+      background:#0b1226;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:12px 16px;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+    }
+    .update-item.max .update-main{
+      background:rgba(16,185,129,.14);
+      border-color:rgba(16,185,129,.42);
+    }
+    .update-name{
+      font-weight:800;
+      color:#f8fafc;
+      font-size:18px;
+      line-height:1.2;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .update-price{
+      font-weight:800;
+      color:#f8fafc;
+      font-size:18px;
+      line-height:1.2;
+      flex:0 0 auto;
+    }
+    .update-diff{
+      font-weight:900;
+      font-size:18px;
+      line-height:1.2;
+      flex:0 0 auto;
+    }
+    .update-diff.max{color:#34d399}
+    .update-diff.minus{color:#facc15}
+    .update-metric{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#0b1226;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:12px 10px;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      min-width:0;
+      text-align:center;
+    }
+    .update-value{
+      font-weight:800;
+      text-align:center;
+      min-width:0;
+      font-size:15px;
+      line-height:1.2;
+      white-space:nowrap;
+    }
+    .update-metric .plus{font-weight:900}
+    .update-metric .minus{font-weight:900}
+    .update-mobile-stats{display:none}
     .recipe-grid{display:grid;gap:10px}
     .recipe{background:#111827;border-radius:10px;padding:10px}
     .recipe-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:15px;color:#dbeafe;font-weight:700}
@@ -90,6 +184,9 @@
       display:none !important;
     }
     @media (min-width:781px){.recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (min-width:900px){
+      .update-item,.update-header{grid-template-columns:332px 116px 116px 116px;max-width:704px;width:704px}
+    }
     @media (max-width:780px){
       body{padding:10px}
       .grid.cols-4{grid-template-columns:1fr}
@@ -99,6 +196,43 @@
       .sale-box{grid-template-columns:minmax(0,1fr) 80px;min-width:0;width:100%}
       .detail-btn{width:100%;display:flex}
       .recipe-row,.recipe-total{max-width:none;grid-template-columns:minmax(0,1fr) 72px}
+      #discordPaste,.paste-actions,.update-summary,.update-list{max-width:none;width:100%}
+      .update-item{
+        grid-template-columns:1fr;
+        align-items:flex-start;
+        gap:8px;
+        width:100%;
+      }
+      .update-main{
+        white-space:normal;
+        flex-wrap:wrap;
+        gap:8px;
+      }
+      .update-name,.update-price,.update-diff{font-size:17px}
+      .update-header{display:none}
+      .update-item{
+        grid-template-columns:1fr;
+        align-items:flex-start;
+        gap:8px;
+        width:100%;
+      }
+      .update-metric{display:none}
+      .update-mobile-stats{
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:8px;
+        width:100%;
+        background:#0b1226;
+        border:1px solid rgba(255,255,255,.06);
+        border-radius:14px;
+        padding:10px 12px;
+        box-shadow:0 8px 20px rgba(0,0,0,.18);
+      }
+      .update-mobile-col{display:grid;gap:4px;text-align:center;min-width:0}
+      .update-mobile-label{font-size:12px;color:#cbd5e1;font-weight:700;white-space:nowrap}
+      .update-mobile-value{font-size:15px;font-weight:900;white-space:nowrap}
+      .update-value{text-align:center;font-size:14px}
+      .paste-actions button{width:auto}
     }
   </style>
 </head>
@@ -133,6 +267,16 @@
   </div>
 
   <div class="card">
+    <h2>디코에서 변동가를 붙여 넣어주세요!</h2>
+    <textarea id="discordPaste" placeholder=":fried_egg:[샌드위치] | 140 → 138&#10;샌드위치 138"></textarea>
+    <div class="paste-actions">
+      <button id="applyDiscordBtn" class="primary-btn">변경가 적용</button>
+      <button id="resetDiscordBtn" class="secondary-btn">전체 초기화</button>
+    </div>
+    <div id="updateSummary" class="update-summary"></div>
+  </div>
+
+  <div class="card">
     <h2>결과 필터</h2>
     <div class="toolbar" id="filterBar"></div>
   </div>
@@ -156,6 +300,8 @@ const BOX_STACK = BOX * STACK;
 const BOX_SHULKER = BOX * SHULKER;
 const STORAGE_KEY = 'chef_calc_v2';
 const FILTERS = ['전체','1차','2차','3차','4차'];
+const DISCORD_TEXT_KEY = 'chef_calc_discord_text';
+const DISCORD_UPDATES_KEY = 'chef_calc_discord_updates';
 let currentFilter = '전체';
 let openedDetailKey = null;
 
@@ -292,7 +438,188 @@ function getPrices(){
 
 function saleInputId(key){ return `sale_${key}`; }
 
-function buildData(){
+function normalizeName(name){
+  return String(name || '')
+    .replace(/\s+/g,'')
+    .replace(/^소고기/, '')
+    .replace(/^퐁신/, '')
+    .replace(/파스타$/, ' 파스타')
+    .trim();
+}
+
+function recipeNameMap(){
+  const map = {};
+  RECIPES.forEach(r => {
+    map[normalizeName(r.name)] = r;
+  });
+  map['미역국'] = RECIPES.find(r => r.key === 'seaweed_soup');
+  map['오믈렛'] = RECIPES.find(r => r.key === 'omelet');
+  map['홍합 파스타'] = RECIPES.find(r => r.key === 'mussel_pasta');
+  map['홍합파스타'] = RECIPES.find(r => r.key === 'mussel_pasta');
+  return map;
+}
+
+function normalizeDiscordDisplayText(text){
+  return String(text || '').replace(/:fried_egg:/g, '🍳');
+}
+
+function parseDiscordUpdates(text){
+  const map = recipeNameMap();
+  const lines = String(text || '').split(/\n+/).map(v => v.trim()).filter(Boolean);
+  const updates = [];
+
+  lines.forEach(line => {
+    let rawName = '';
+    let oldValue = null;
+    let newValue = null;
+
+    const arrowMatch = line.match(/(?:🍳\s*)?(?:\[(.+?)\]|([^|]+?))\s*\|?\s*(-?\d+(?:\.\d+)?)\s*[→>\-]+\s*(-?\d+(?:\.\d+)?)/);
+    if(arrowMatch){
+      rawName = (arrowMatch[1] || arrowMatch[2] || '').trim();
+      oldValue = num(arrowMatch[3]);
+      newValue = num(arrowMatch[4]);
+    } else {
+      const simpleMatch = line.match(/(?:🍳\s*)?(?:\[(.+?)\]|(.+?))\s+(-?\d+(?:\.\d+)?)(?:\s*원)?$/);
+      if(!simpleMatch) return;
+      rawName = (simpleMatch[1] || simpleMatch[2] || '').trim();
+      newValue = num(simpleMatch[3]);
+    }
+
+    const recipe = map[normalizeName(rawName)];
+    if(!recipe || !Number.isFinite(newValue)) return;
+    updates.push({
+      key: recipe.key,
+      name: recipe.name,
+      rawName,
+      oldValue,
+      newValue,
+      max: recipe.max,
+      diffFromMax: newValue - recipe.max
+    });
+  });
+
+  const deduped = [];
+  const seen = new Set();
+  updates.reverse().forEach(item => {
+    if(seen.has(item.key)) return;
+    seen.add(item.key);
+    deduped.push(item);
+  });
+  return deduped.reverse();
+}
+
+function getStoredDiscordUpdates(){
+  try{
+    const raw = localStorage.getItem(DISCORD_UPDATES_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function renderUpdateSummary(){
+  const box = document.getElementById('updateSummary');
+  if(!box) return;
+  const updates = getStoredDiscordUpdates();
+  if(!updates.length){
+    box.innerHTML = '<div class="update-empty">아직 적용된 변경가가 없습니다.</div>';
+    return;
+  }
+
+  const resultMap = Object.fromEntries(buildAllData().map(r => [r.key, r]));
+  const visible = updates
+    .map(u => ({...u, bucket: u.diffFromMax >= 0 ? 'max' : Math.abs(Math.round(u.diffFromMax)), result: resultMap[u.key]}))
+    .filter(u => u.bucket === 'max' || (Number.isInteger(u.bucket) && u.bucket >= 1 && u.bucket <= 4))
+    .sort((a,b) => {
+      if(a.diffFromMax !== b.diffFromMax) return b.diffFromMax - a.diffFromMax;
+      if(a.newValue !== b.newValue) return b.newValue - a.newValue;
+      const aprofit = a.result?.profit ?? -Infinity;
+      const bprofit = b.result?.profit ?? -Infinity;
+      if(aprofit !== bprofit) return bprofit - aprofit;
+      return a.name.localeCompare(b.name, 'ko');
+    });
+
+  if(!visible.length){
+    box.innerHTML = '<div class="update-empty">표시할 음식이 없습니다.</div>';
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="update-header">
+      <div class="update-header-spacer"></div>
+      <div class="update-header-label">손익</div>
+      <div class="update-header-label">1셜커 이익</div>
+      <div class="update-header-label">이율</div>
+    </div>
+    <div class="update-list">
+      ${visible.map(item => {
+        const result = item.result;
+        const totalProfitText = result
+          ? `${result.profit >= 0 ? '+' : ''}${fmt0(result.profit)}`
+          : '-';
+        const shulkerProfitText = result
+          ? `${result.profit >= 0 ? '+' : ''}${fmt0(shulkerValue(result.profit))}`
+          : '-';
+        const roiText = result
+          ? `${result.roi >= 0 ? '+' : ''}${(result.roi*100).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}%`
+          : '-';
+        const diffClass = item.bucket === 'max' ? 'max' : 'minus';
+        const rowClass = item.bucket === 'max' ? 'max' : `m${item.bucket}`;
+        const diffText = item.bucket === 'max' ? '최고가' : `(-${item.bucket})`;
+        return `
+          <div class="update-item ${rowClass}">
+            <div class="update-main">
+              <span class="update-name">[${item.name}]</span>
+              <span class="update-price">${fmt0(item.newValue)}원</span>
+              <span class="update-diff ${diffClass}">${diffText}</span>
+            </div>
+            <div class="update-metric"><span class="update-value ${result && result.profit >= 0 ? 'plus' : 'minus'}">${totalProfitText}</span></div>
+            <div class="update-metric"><span class="update-value ${result && result.profit >= 0 ? 'plus' : 'minus'}">${shulkerProfitText}</span></div>
+            <div class="update-metric"><span class="update-value ${result && result.roi >= 0 ? 'plus' : 'minus'}">${roiText}</span></div>
+            <div class="update-mobile-stats">
+              <div class="update-mobile-col"><span class="update-mobile-label">손익</span><span class="update-mobile-value ${result && result.profit >= 0 ? 'plus' : 'minus'}">${totalProfitText}</span></div>
+              <div class="update-mobile-col"><span class="update-mobile-label">1셜커 이익</span><span class="update-mobile-value ${result && result.profit >= 0 ? 'plus' : 'minus'}">${shulkerProfitText}</span></div>
+              <div class="update-mobile-col"><span class="update-mobile-label">이율</span><span class="update-mobile-value ${result && result.roi >= 0 ? 'plus' : 'minus'}">${roiText}</span></div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function applyDiscordTextToSales(text){
+  const updates = parseDiscordUpdates(text);
+  RECIPES.forEach(r => {
+    const el = document.getElementById(saleInputId(r.key));
+    if(el) el.value = r.max;
+  });
+  updates.forEach(u => {
+    const el = document.getElementById(saleInputId(u.key));
+    if(el) el.value = u.newValue;
+  });
+  const displayText = normalizeDiscordDisplayText(text);
+  const textarea = document.getElementById('discordPaste');
+  if(textarea) textarea.value = displayText;
+  localStorage.setItem(DISCORD_TEXT_KEY, displayText || '');
+  localStorage.setItem(DISCORD_UPDATES_KEY, JSON.stringify(updates));
+  render();
+}
+
+function resetDiscordPricing(){
+  const textarea = document.getElementById('discordPaste');
+  if(textarea) textarea.value = '';
+  localStorage.removeItem(DISCORD_TEXT_KEY);
+  localStorage.removeItem(DISCORD_UPDATES_KEY);
+  RECIPES.forEach(r => {
+    const el = document.getElementById(saleInputId(r.key));
+    if(el) el.value = r.max;
+  });
+  render();
+}
+
+function buildAllData(){
   const p = getPrices();
   return RECIPES.map(r => {
     const detail = r.detail.map(([name, fn]) => [name, fn(p)]);
@@ -306,8 +633,11 @@ function buildData(){
       ? detail.map(([name, value]) => [name, value, value / raw])
       : detail.map(([name, value]) => [name, value, 0]);
     return {...r, detail, detailRatio, raw, cost, sale, profit, roi};
-  }).filter(r => currentFilter === '전체' || r.tier === currentFilter)
-    .sort((a,b)=>b.profit - a.profit);
+  }).sort((a,b)=>b.profit - a.profit);
+}
+
+function buildData(){
+  return buildAllData().filter(r => currentFilter === '전체' || r.tier === currentFilter);
 }
 
 function makeSaleInput(recipe){
@@ -384,6 +714,7 @@ function render(){
         <div class="stat ${r.profit >= 0 ? 'plus' : 'minus'}">손익<br>${r.profit >= 0 ? '+' : ''}${fmt1(r.profit)}</div>
         <div class="stat ${r.profit >= 0 ? 'plus' : 'minus'}">1셜커 이익<br>${r.profit >= 0 ? '+' : ''}${fmt0(shulkerValue(r.profit))}</div>
         <div class="stat ${r.roi >= 0 ? 'plus' : 'minus'}">이율<br>${r.roi >= 0 ? '+' : ''}${(r.roi*100).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}%</div>
+        <div class="stat ${r.sale - r.max >= 0 ? 'plus' : 'minus'}">최고가 대비<br>${r.sale - r.max >= 0 ? '+' : ''}${fmt0(r.sale - r.max)}</div>
         ${Math.abs(r.sale - r.max) > 0.000001 ? `<div class="stat">최대 상점가<br>${fmt0(r.max)}</div>` : ''}
         ${Math.abs(r.cost - r.raw) > 0.000001 ? `<div class="stat">원재료 합<br>${fmt1(r.raw)}</div>` : ''}
       </div>
@@ -400,6 +731,7 @@ function render(){
           <div class="recipe-total"><span>판매가</span><span>${fmt1(r.sale)}</span></div>
           <div class="recipe-total"><span>1셜커 판매가</span><span>${fmt0(shulkerValue(r.sale))}</span></div>
           <div class="recipe-total"><span>1셜커 이익</span><span>${r.profit >= 0 ? '+' : ''}${fmt0(shulkerValue(r.profit))}</span></div>
+          <div class="recipe-total"><span>최고가 대비</span><span class="${r.sale - r.max >= 0 ? 'plus' : 'minus'}">${r.sale - r.max >= 0 ? '+' : ''}${fmt0(r.sale - r.max)}</span></div>
           ${Math.abs(r.sale - r.max) > 0.000001 ? `<div class="recipe-total"><span>최대 상점가</span><span>${fmt0(r.max)}</span></div>` : ''}
         </div>
       ` : ''}
@@ -418,12 +750,14 @@ function render(){
       <div class="recipe-total"><span>판매가</span><span>${fmt1(r.sale)}</span></div>
       <div class="recipe-total"><span>1셜커 판매가</span><span>${fmt0(shulkerValue(r.sale))}</span></div>
       <div class="recipe-total"><span>1셜커 이익</span><span>${r.profit >= 0 ? '+' : ''}${fmt0(shulkerValue(r.profit))}</span></div>
+      <div class="recipe-total"><span>최고가 대비</span><span class="${r.sale - r.max >= 0 ? 'plus' : 'minus'}">${r.sale - r.max >= 0 ? '+' : ''}${fmt0(r.sale - r.max)}</span></div>
       ${Math.abs(r.sale - r.max) > 0.000001 ? `<div class="recipe-total"><span>최대 상점가</span><span>${fmt0(r.max)}</span></div>` : ''}
     </div>
   `).join('');
 
   attachSaleEvents();
   attachDetailEvents();
+  renderUpdateSummary();
   saveState();
 }
 
@@ -470,6 +804,8 @@ function loadState(){
       if(v && state[f.id + '_value'] !== undefined) v.value = state[f.id + '_value'];
       if(u && state[f.id + '_unit'] !== undefined) u.value = state[f.id + '_unit'];
     });
+    const discordPaste = document.getElementById('discordPaste');
+    if(discordPaste) discordPaste.value = normalizeDiscordDisplayText(localStorage.getItem(DISCORD_TEXT_KEY) || '');
     window.__saleState = state;
   }catch(e){ window.__saleState = {}; }
 }
@@ -493,8 +829,34 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(f.id + '_value').addEventListener('input', render);
     document.getElementById(f.id + '_unit').addEventListener('change', render);
   });
+  const discordPasteEl = document.getElementById('discordPaste');
+  discordPasteEl.addEventListener('input', () => {
+    const normalized = normalizeDiscordDisplayText(discordPasteEl.value);
+    if(normalized !== discordPasteEl.value){
+      const start = discordPasteEl.selectionStart;
+      const end = discordPasteEl.selectionEnd;
+      discordPasteEl.value = normalized;
+      try{ discordPasteEl.setSelectionRange(start, end); }catch(e){}
+    }
+  });
+  discordPasteEl.addEventListener('paste', () => {
+    requestAnimationFrame(() => {
+      const normalized = normalizeDiscordDisplayText(discordPasteEl.value);
+      if(normalized !== discordPasteEl.value) discordPasteEl.value = normalized;
+    });
+  });
+  document.getElementById('applyDiscordBtn').addEventListener('click', () => {
+    applyDiscordTextToSales(discordPasteEl.value);
+  });
+  document.getElementById('resetDiscordBtn').addEventListener('click', resetDiscordPricing);
   render();
   hydrateSaleDefaults();
+  const savedDiscordText = localStorage.getItem(DISCORD_TEXT_KEY);
+  if(savedDiscordText){
+    applyDiscordTextToSales(savedDiscordText);
+  } else {
+    renderUpdateSummary();
+  }
   render();
   buildFilterBar();
 });
