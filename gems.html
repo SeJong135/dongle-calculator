@@ -416,6 +416,7 @@ const DIAMONDS_PER_BLOCK = 9;
 const ITEMS_PER_BLOCK = 9;
 const OIL_P_PER_GEM_LOW = 0.0005;         // 10강 이하: 보석 1개당 0.05%
 const PIECE_P_PER_TRY = 197 / 918;        // 1회 제작(64개)당 조각 기대확률(0/1개)
+const PIECE_PER_PROC = 2;                 // 조각 2개씩 뜨도록 변경
 
 const enhMap = [
   {lvl:0,  gem2:0,  oil:0},
@@ -555,7 +556,7 @@ function calc(){
   const pOilPerTry = 1 - Math.pow(1 - pOilPerGem, BATCH_GEMS);
 
   const expectedOilPerTry = pOilPerTry;
-  const expectedPiecePerTry = PIECE_P_PER_TRY;
+  const expectedPiecePerTry = PIECE_P_PER_TRY * PIECE_PER_PROC;
 
   let rows = [];
   for(const recipe of recipes){
