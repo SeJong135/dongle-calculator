@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>꼬마돌 계산기</title>
+  <style>
+    :root{
+      --panel:#1f2937;
+      --line:#374151;
+      --text:#e5e7eb;
+      --sub:#bfdbfe;
+      --accent:#60a5fa;
+      --good:#4ade80;
+      --bad:#fb7185;
+      --input:#0f172a;
+      --bg:#0f172a;
+      --card:#111827;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Pretendard,system-ui,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      padding:14px;
+    }
+    .wrap{max-width:1120px;margin:auto}
+    .card{
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:14px;
+      margin-bottom:14px;
+      box-shadow:0 8px 24px rgba(0,0,0,.22);
+    }
+    h1{margin:0;font-size:28px}
+    h2{margin:0 0 10px;font-size:18px;color:#dbeafe}
+    .sub{margin-top:6px;font-size:13px;color:#93c5fd}
+    .grid{display:grid;gap:10px}
+    .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .field label{font-size:13px;color:var(--sub)}
+    input,select{
+      background:var(--input);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px;
+      color:#fff;
+      width:100%;
+      min-width:0;
+    }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{
+      -webkit-appearance:none;
+      margin:0;
+    }
+    input[type=number]{
+      -moz-appearance:textfield;
+      appearance:textfield;
+    }
+    .inline-input{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 92px;
+      gap:6px;
+    }
+    .results{display:grid;gap:10px}
+    .ore-card{
+      background:var(--card);
+      border-radius:14px;
+      padding:12px;
+    }
+    .ore-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .ore-title{font-size:17px;font-weight:700;color:#dbeafe}
+    .ore-price{font-size:13px;color:#93c5fd}
+    .stat-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+    }
+    .stat{
+      background:#1f2937;
+      border-radius:10px;
+      padding:10px;
+      min-width:0;
+    }
+    .stat-label{
+      font-size:12px;
+      color:#93c5fd;
+      margin-bottom:6px;
+      word-break:keep-all;
+    }
+    .stat-value{
+      font-size:16px;
+      font-weight:700;
+      line-height:1.35;
+      word-break:break-word;
+    }
+    .stat-value.good{color:var(--good)}
+    .stat-value.bad{color:var(--bad)}
+    .hint{
+      margin-top:10px;
+      padding-top:10px;
+      border-top:1px dashed rgba(255,255,255,.12);
+      font-size:12px;
+      color:#9ca3af;
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    @media (max-width:900px){
+      .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width:720px){
+      body{padding:10px}
+      .grid.cols-2,.grid.cols-3{grid-template-columns:1fr}
+      .inline-input{grid-template-columns:minmax(0,1fr) 84px}
+      .stat-grid{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>꼬마돌 계산기</h1>
+    <div class="sub">꼬마돌 1개 = 경험치 2921</div>
+  </div>
+
+  <div class="card">
+    <!-- <h2>기준값</h2> -->
+    <div class="grid cols-2">
+      <div class="field">
+        <label for="stonePrice">꼬마돌 가격</label>
+        <input id="stonePrice" type="number" step="0.1" />
+      </div>
+      <div class="field">
+        <label for="xpBonus">경험치 배율</label>
+        <input id="xpBonus" type="number" step="0.1" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>광물 시세</h2>
+    <div class="grid cols-3">
+      <div class="field">
+        <label for="copperValue">구리원석블럭</label>
+        <div class="inline-input">
+          <input id="copperValue" type="number" step="0.1" />
+          <select id="copperUnit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="ironValue">철원석블럭</label>
+        <div class="inline-input">
+          <input id="ironValue" type="number" step="0.1" />
+          <select id="ironUnit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="goldValue">금원석블럭</label>
+        <div class="inline-input">
+          <input id="goldValue" type="number" step="0.1" />
+          <select id="goldUnit">
+            <option value="item">1개</option>
+            <option value="stack">1세트</option>
+            <option value="shulker">1셜커</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+const XP_PER_STONE = 2921;
+const COPPER_LOSS_RATE = 0.37;
+const UNIT_SIZE = { item: 1, stack: 64, shulker: 1728 };
+const STORAGE_KEY = 'kkoma-calc-v6';
+const ORES = [
+  { key: 'copper', name: '구리원석블럭', blockName: '구리 블럭', vanillaXpPerBlock: 6.3, lossRate: COPPER_LOSS_RATE },
+  { key: 'iron', name: '철원석블럭', blockName: '철 블럭', vanillaXpPerBlock: 6.3, lossRate: 0 },
+  { key: 'gold', name: '금원석블럭', blockName: '금 블럭', vanillaXpPerBlock: 9, lossRate: 0 }
+];
+
+const el = id => document.getElementById(id);
+const money = value => `${Math.round(value).toLocaleString()}원`;
+const num1 = value => Number(value).toLocaleString('ko-KR', { maximumFractionDigits: 1 });
+const num2 = value => Number(value).toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function toNumber(value){
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function unitPrice(value, unit){
+  return toNumber(value) / UNIT_SIZE[unit];
+}
+
+function xpRate(){
+  return 1 + (toNumber(el('xpBonus').value) / 100);
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    Object.entries(data).forEach(([key, value]) => {
+      const node = el(key);
+      if(node && value !== undefined && value !== null){
+        node.value = value;
+      }
+    });
+  }catch(e){}
+}
+
+function saveState(){
+  const data = {
+    stonePrice: el('stonePrice').value,
+    xpBonus: el('xpBonus').value,
+    copperValue: el('copperValue').value,
+    copperUnit: el('copperUnit').value,
+    ironValue: el('ironValue').value,
+    ironUnit: el('ironUnit').value,
+    goldValue: el('goldValue').value,
+    goldUnit: el('goldUnit').value
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function stoneValuePerBlock(ore){
+  const afterLossXp = ore.vanillaXpPerBlock * (1 - ore.lossRate);
+  const gainedXp = afterLossXp * xpRate();
+  const stones = gainedXp / XP_PER_STONE;
+  const rebate = stones * toNumber(el('stonePrice').value);
+  return { gainedXp, stones, rebate, afterLossXp };
+}
+
+function oreData(ore){
+  const value = toNumber(el(`${ore.key}Value`).value);
+  const hasValue = value > 0;
+  const unit = el(`${ore.key}Unit`).value;
+  const perBlock = unitPrice(value, unit);
+  const bonus = stoneValuePerBlock(ore);
+  const effectivePerBlock = perBlock - bonus.rebate;
+  return {
+    ...ore,
+    inputValue: value,
+    hasValue,
+    unit,
+    perBlock,
+    perStack: perBlock * UNIT_SIZE.stack,
+    perShulker: perBlock * UNIT_SIZE.shulker,
+    rebatePerBlock: bonus.rebate,
+    rebatePerStack: bonus.rebate * UNIT_SIZE.stack,
+    rebatePerShulker: bonus.rebate * UNIT_SIZE.shulker,
+    stonesPerBlock: bonus.stones,
+    stonesPerStack: bonus.stones * UNIT_SIZE.stack,
+    stonesPerShulker: bonus.stones * UNIT_SIZE.shulker,
+    gainedXpPerBlock: bonus.gainedXp,
+    gainedXpPerShulker: bonus.gainedXp * UNIT_SIZE.shulker,
+    effectivePerBlock,
+    effectivePerStack: effectivePerBlock * UNIT_SIZE.stack,
+    effectivePerShulker: effectivePerBlock * UNIT_SIZE.shulker
+  };
+}
+
+function stat(label, value, cls=''){
+  return `
+    <div class="stat">
+      <div class="stat-label">${label}</div>
+      <div class="stat-value ${cls}">${value}</div>
+    </div>
+  `;
+}
+
+function renderCard(data){
+  const signClass = data.effectivePerBlock >= 0 ? 'good' : 'bad';
+  const unitText = `${num1(data.inputValue)} / ${data.unit === 'item' ? '1개' : data.unit === 'stack' ? '1세트' : '1셜커'}`;
+  const rebateItemStat = data.unit === 'item' ? stat('꼬마돌 환급 1개', money(data.rebatePerBlock)) : '';
+  const rebateStackStat = data.unit === 'stack' ? stat('꼬마돌 환급 1세트', money(data.rebatePerStack)) : '';
+  const effectiveStackStat = data.unit === 'stack' ? stat(`${data.blockName} 1세트`, money(data.effectivePerStack), signClass) : '';
+
+  return `
+    <div class="ore-card">
+      <div class="ore-head">
+
+      </div>
+      <div class="stat-grid">
+        ${stat(`${data.name} 1개`, money(data.perBlock))}
+        ${rebateItemStat}
+        ${stat(`${data.blockName} 1개`, money(data.effectivePerBlock), signClass)}
+        ${rebateStackStat}
+        ${effectiveStackStat}
+        ${stat('꼬마돌 환급 1셜커', money(data.rebatePerShulker))}
+        ${stat(`${data.blockName} 1셜커`, money(data.effectivePerShulker), signClass)}
+      </div>
+            <div class="hint">
+        <span>꼬마돌 ${num2(data.stonesPerShulker)}개 / 1셜커${data.key === 'copper' ? ` · ${num2(data.stonesPerShulker * 3)}개 / 3셜커` : ''}</span>
+        <span>경험치 ${num1(data.gainedXpPerShulker)} / 1셜커</span>
+      </div>
+    </div>
+  `;
+}
+
+function render(){
+  saveState();
+  const list = ORES.map(ore => oreData(ore)).filter(data => data.hasValue);
+  el('results').innerHTML = list.length ? list.map(renderCard).join('') : '';
+}
+
+document.querySelectorAll('input, select').forEach(node => {
+  node.addEventListener('input', render);
+  node.addEventListener('change', render);
+  node.addEventListener('blur', render);
+  node.addEventListener('keyup', e => {
+    if(e.key === 'Enter') render();
+  });
+});
+
+loadState();
+render();
+</script>
+</body>
+</html>
