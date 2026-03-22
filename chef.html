@@ -607,7 +607,7 @@ function getDiscordApplyNotice(updates){
     return { appliedLine, missingLine: '모든 요리가 입력되었습니다.' };
   }
 
-  if(missingNames.length <= 3){
+  if(missingNames.length <= 5){
     return {
       appliedLine,
       missingLine: `${missingNames.join(', ')} 요리가 입력되지 않았습니다.`
