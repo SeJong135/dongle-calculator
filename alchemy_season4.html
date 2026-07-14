@@ -60,7 +60,7 @@
     .update-summary{display:grid;gap:8px;margin-top:12px;align-items:start;max-width:760px}
     .update-empty{font-size:13px;color:#94a3b8;margin-top:4px}
     .update-list{display:grid;gap:10px;justify-items:start;max-width:760px;width:100%}
-    .update-header{display:grid;grid-template-columns:332px 116px 116px 116px;gap:8px;align-items:end;width:704px;max-width:100%}
+    .update-header{display:grid;grid-template-columns:264px 110px 110px 110px 110px;gap:8px;align-items:end;width:704px;max-width:100%}
     .update-header-spacer{height:1px}
     .update-header-label{font-size:15px;font-weight:800;color:#bfdbfe;white-space:nowrap;text-align:center;display:flex;align-items:center;justify-content:center;height:28px;width:100%}
     .update-item{
@@ -70,7 +70,7 @@
       padding:0;
       box-shadow:none;
       display:grid;
-      grid-template-columns:332px 116px 116px 116px;
+      grid-template-columns:264px 110px 110px 110px 110px;
       align-items:center;
       gap:8px;
       width:704px;
@@ -160,7 +160,7 @@
       .recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
     @media (min-width:900px){
-      .update-item,.update-header{grid-template-columns:332px 116px 116px 116px;max-width:704px;width:704px}
+      .update-item,.update-header{grid-template-columns:264px 110px 110px 110px 110px;max-width:704px;width:704px}
     }
     @media (max-width:780px){
       body{padding:10px}
@@ -179,7 +179,7 @@
       .update-metric{display:none}
       .update-mobile-stats{
         display:grid;
-        grid-template-columns:repeat(3,minmax(0,1fr));
+        grid-template-columns:repeat(4,minmax(0,1fr));
         gap:8px;
         width:100%;
         background:#0b1226;
@@ -248,6 +248,7 @@
     <div class="paste-actions">
       <button id="applyDiscordBtn" class="primary-btn">변경가 적용</button>
       <button id="resetDiscordBtn" class="secondary-btn">전체 초기화</button>
+      <button id="maxDiscordBtn" class="secondary-btn">최대치 입력</button>
     </div>
     <div id="discordApplyNotice" class="discord-apply-notice"></div>
     <div id="updateSummary" class="update-summary"></div>
@@ -270,28 +271,62 @@ var SHULKER = 1728;
 var STORAGE_KEY = 'alchemist_calc_v9_master';
 var DISCORD_TEXT_KEY = 'alchemist_discord_text_v9';
 var DISCORD_UPDATES_KEY = 'alchemist_discord_updates_v9';
-var openedDetailKey = null;
+var openedDetailKeys = {};
 var saleState = {};
 
 var PRICE_FIELDS = [
   {id:'price_wart', label:'네더와트', units:['item','stack','shulker']},
-  {id:'price_blaze', label:'블레이즈 가루 (연료)', units:['item','stack','shulker']},
+  {id:'price_blaze', label:'발광석 (연료)', units:['item','stack','shulker']},
   {id:'price_gem', label:'촉매 보석 (5종 공통)', units:['item','stack','shulker']},
-  {id:'price_gul_sora', label:'🔥 굴 & 소라', units:['item','stack','shulker']},
-  {id:'price_miyeok_kijo', label:'💧 미역 & 키조개', units:['item','stack','shulker']},
-  {id:'price_jeonbok_meongge', label:'💨 전복 & 멍게', units:['item','stack','shulker']},
-  {id:'price_honghap_haesam', label:'⚡💪 홍합 & 해삼', units:['item','stack','shulker']}
+  {id:'price_gul_sora', label:'굴 & 소라', units:['item','stack','shulker']},
+  {id:'price_miyeok_kijo', label:'미역 & 키조개', units:['item','stack','shulker']},
+  {id:'price_jeonbok_meongge', label:'전복 & 멍게', units:['item','stack','shulker']},
+  {id:'price_honghap_haesam', label:'홍합 & 해삼', units:['item','stack','shulker']}
 ];
 
 var INPUT_IDS = ['bonusRate','petBonus','skillLevel'];
 
 var RECIPES = [
-  {key:'eogyeol', tier:'', name:'어색한 결정', max:9, detail:[['물병 단가', function(p){return 1;}], ['네더와트 단가', function(p){return p.wart/3;}], ['블레이즈 연료 단가', function(p){return (p.blaze/20)/3;}]]},
-  {key:'fire', tier:'1차', name:'룬ㅣ화염저항', max:270, detail:[['정제 화염결정 3개', function(p){return p.ref_fire*3;}], ['촉매 보석 1개', function(p){return p.gem;}]]},
-  {key:'breath', tier:'2차', name:'룬ㅣ호흡', max:311, detail:[['정제 호흡결정 3개', function(p){return p.ref_breath*3;}], ['촉매 보석 1개', function(p){return p.gem;}]]},
-  {key:'speed', tier:'3차', name:'룬ㅣ신속', max:342, detail:[['정제 신속결정 3개', function(p){return p.ref_speed*3;}], ['촉매 보석 1개', function(p){return p.gem;}]]},
-  {key:'haste', tier:'4차', name:'룬ㅣ성급', max:603, detail:[['정제 성급결정 3개', function(p){return p.ref_hp*3;}], ['촉매 보석 2개', function(p){return p.gem*2;}]]},
-  {key:'power', tier:'5차', name:'룬ㅣ힘', max:608, detail:[['정제 힘결정 3개', function(p){return p.ref_hp*3;}], ['촉매 보석 2개', function(p){return p.gem*2;}]]}
+  {key:'eogyeol', tier:'', name:'어결 (1병당)', max:9, detail:[
+    ['물병 1개', function(p){return 1;}],
+    ['네더와트 1/3개', function(p){return p.wart/3;}],
+    ['연료 1/3회분 (발광석)', function(p){return (p.blaze/40)/3;}]
+  ]},
+  {key:'fire', tier:'1차', name:'룬ㅣ화염저항', max:270, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['굴 & 소라 2개', function(p){return p.gul_sora*2;}],
+    ['촉매 보석 1개', function(p){return p.gem;}]
+  ]},
+  {key:'breath', tier:'2차', name:'룬ㅣ호흡', max:311, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['미역 & 키조개 2개', function(p){return p.miyeok_kijo*2;}],
+    ['촉매 보석 1개', function(p){return p.gem;}]
+  ]},
+  {key:'speed', tier:'3차', name:'룬ㅣ신속', max:342, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['전복 & 멍게 2개', function(p){return p.jeonbok_meongge*2;}],
+    ['촉매 보석 1개', function(p){return p.gem;}]
+  ]},
+  {key:'haste', tier:'4차', name:'룬ㅣ성급', max:603, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['홍합 & 해삼 2개', function(p){return p.honghap_haesam*2;}],
+    ['촉매 보석 2개', function(p){return p.gem*2;}]
+  ]},
+  {key:'power', tier:'5차', name:'룬ㅣ힘', max:608, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['홍합 & 해삼 2개', function(p){return p.honghap_haesam*2;}],
+    ['촉매 보석 2개', function(p){return p.gem*2;}]
+  ]}
 ];
 
 function unitLabel(unit){
@@ -322,14 +357,14 @@ function buildPriceGrid(){
   var html = PRICE_FIELDS.map(function(f) {
     INPUT_IDS.push(f.id + '_value');
     INPUT_IDS.push(f.id + '_unit');
-    var opts = f.units.map(function(u) { return '<option value="' + u + '">' + unitLabel(u) + '</option>'; }).join('');
+    var opts = f.units.map(function(u) { return '<option value="' + u + '"' + (u === 'stack' ? ' selected' : '') + '>' + unitLabel(u) + '</option>'; }).join('');
     return '<div class="field"><label for="' + f.id + '_value">' + f.label + '</label><div class="inline-input"><input id="' + f.id + '_value" type="number" step="0.1"><select id="' + f.id + '_unit">' + opts + '</select></div></div>';
   }).join('');
   document.getElementById('priceGrid').innerHTML = html;
 }
 
 function getPrices(){
-  var p = {
+  return {
     wart: perUnit('price_wart'),
     blaze: perUnit('price_blaze'),
     gem: perUnit('price_gem'),
@@ -338,18 +373,6 @@ function getPrices(){
     jeonbok_meongge: perUnit('price_jeonbok_meongge'),
     honghap_haesam: perUnit('price_honghap_haesam')
   };
-  
-  var petEl = document.getElementById('petBonus');
-  var pet = petEl ? num(petEl.value) : 0;
-  var petApply = function(cost) { return cost * (1 - pet * 0.33); };
-
-  var awk = petApply((3 + p.wart + p.blaze/20) / 3);
-  p.ref_fire = petApply(awk*3 + p.gul_sora + p.blaze/20) / 3;
-  p.ref_breath = petApply(awk*3 + p.miyeok_kijo + p.blaze/20) / 3;
-  p.ref_speed = petApply(awk*3 + p.jeonbok_meongge + p.blaze/20) / 3;
-  p.ref_hp = petApply(awk*3 + p.honghap_haesam + p.blaze/20) / 3;
-
-  return p;
 }
 
 function saleInputId(key){ return 'sale_' + key; }
@@ -393,7 +416,7 @@ function parseDiscordUpdates(text){
       rawName = (arrowMatch[1] || arrowMatch[2] || '').trim();
       newValue = num(arrowMatch[4]);
     } else {
-      var simpleMatch = line.match(/(?:🧪\s*)?(?:\[(.+?)\]|([^|]+?))\s+(-?\d+(?:\.\d+)?)(?:\s*원)?$/);
+      var simpleMatch = line.match(/(?:🧪\s*)?(?:\[(.+?)\]|([^|]+?))\s*[\|ㅣ]?\s*(-?\d+(?:\.\d+)?)(?:\s*원)?$/);
       if(!simpleMatch) continue;
       rawName = (simpleMatch[1] || simpleMatch[2] || '').trim();
       newValue = num(simpleMatch[3]);
@@ -503,7 +526,7 @@ function renderUpdateSummary(){
     return;
   }
 
-  var html = '<div class="update-header"><div class="update-header-spacer"></div><div class="update-header-label">개당손익</div><div class="update-header-label">1셜커 마진</div><div class="update-header-label">이율</div></div><div class="update-list">';
+  var html = '<div class="update-header"><div class="update-header-spacer"></div><div class="update-header-label">개당손익</div><div class="update-header-label">1셜커 마진</div><div class="update-header-label">이율</div><div class="update-header-label">최고가 차액</div></div><div class="update-list">';
   
   for(var m=0; m<visible.length; m++){
     var item = visible[m];
@@ -512,9 +535,14 @@ function renderUpdateSummary(){
     var shulkerProfitText = res ? (res.profit >= 0 ? '+' : '') + fmt0(shulkerValue(res.profit)) : '-';
     var roiText = res ? (res.roi >= 0 ? '+' : '') + fmtRatio(res.roi) : '-';
     
+    // 최고가 차액 계산 로직 추가
+    var shulkerDiff = res ? shulkerValue(item.newValue - res.max) : 0;
+    var shulkerDiffText = shulkerDiff < 0 ? fmt0(shulkerDiff) + '원' : '-';
+    var shulkerDiffClass = shulkerDiff < 0 ? 'minus' : '';
+
     var diffClass = item.bucket === 'max' ? 'max' : 'minus';
     var rowClass = item.bucket === 'max' ? 'max' : 'm' + item.bucket;
-    var diffText = item.bucket === 'max' ? '라이브' : '(-' + item.bucket + ')';
+    var diffText = item.bucket === 'max' ? '최고가' : '(-' + item.bucket + ')';
     var plusClass = res && res.profit >= 0 ? 'plus' : 'minus';
     var rClass = res && res.roi >= 0 ? 'plus' : 'minus';
 
@@ -522,7 +550,8 @@ function renderUpdateSummary(){
     html += '<div class="update-metric"><span class="update-value ' + plusClass + '">' + totalProfitText + '</span></div>';
     html += '<div class="update-metric"><span class="update-value ' + plusClass + '">' + shulkerProfitText + '</span></div>';
     html += '<div class="update-metric"><span class="update-value ' + rClass + '">' + roiText + '</span></div>';
-    html += '<div class="update-mobile-stats"><div class="update-mobile-col"><span class="update-mobile-label">손익</span><span class="update-mobile-value ' + plusClass + '">' + totalProfitText + '</span></div><div class="update-mobile-col"><span class="update-mobile-label">1셜커 이익</span><span class="update-mobile-value ' + plusClass + '">' + shulkerProfitText + '</span></div><div class="update-mobile-col"><span class="update-mobile-label">이율</span><span class="update-mobile-value ' + rClass + '">' + roiText + '</span></div></div></div>';
+    html += '<div class="update-metric"><span class="update-value ' + shulkerDiffClass + '">' + shulkerDiffText + '</span></div>';
+    html += '<div class="update-mobile-stats"><div class="update-mobile-col"><span class="update-mobile-label">손익</span><span class="update-mobile-value ' + plusClass + '">' + totalProfitText + '</span></div><div class="update-mobile-col"><span class="update-mobile-label">1셜커 이익</span><span class="update-mobile-value ' + plusClass + '">' + shulkerProfitText + '</span></div><div class="update-mobile-col"><span class="update-mobile-label">이율</span><span class="update-mobile-value ' + rClass + '">' + roiText + '</span></div><div class="update-mobile-col"><span class="update-mobile-label">최고가 차액</span><span class="update-mobile-value ' + shulkerDiffClass + '">' + shulkerDiffText + '</span></div></div></div>';
   }
   html += '</div>';
   box.innerHTML = html;
@@ -566,25 +595,25 @@ function buildAllData(){
   var shoeBonus = bonusEl ? num(bonusEl.value) : 0;
   var petEl = document.getElementById('petBonus');
   var pet = petEl ? num(petEl.value) : 0;
-  var petApply = function(cost) { return cost * (1 - pet * 0.33); };
+  
+  var petApply = function(cost) { return cost * (1 - pet); };
 
-  // 정렬 없이 배열에 정의된 고정 순서(어결 -> 화염 -> 호흡 -> 신속 -> 성급 -> 힘) 그대로 리턴
   return RECIPES.map(function(r) {
     var detail = r.detail.map(function(item) { return [item[0], item[1](p)]; });
     var raw = 0;
     for(var i=0; i<detail.length; i++) raw += detail[i][1];
     
-    var cost = raw;
-    if(r.key === 'eogyeol') {
-        cost = petApply(raw * 3) / 3;
-    } else {
-        cost = raw / (1 + shoeBonus);
+    var cost = petApply(raw);
+    
+    if(r.key !== 'eogyeol') {
+        cost = cost / (1 + shoeBonus);
     }
 
     var saleVal = saleState[r.key];
     var sale = saleVal !== undefined ? num(saleVal) : r.max;
     var profit = sale - cost;
     var roi = cost > 0 ? (profit / cost) : (sale > 0 ? 1 : 0);
+    
     var detailRatio = [];
     for(var j=0; j<detail.length; j++){
       detailRatio.push([detail[j][0], detail[j][1], raw > 0 ? (detail[j][1] / raw) : 0]);
@@ -613,7 +642,11 @@ function attachDetailEvents(){
     btn.setAttribute('data-bound', '1');
     btn.addEventListener('click', function(e) {
       var key = e.target.getAttribute('data-detail-key');
-      openedDetailKey = (openedDetailKey === key) ? null : key;
+      if(openedDetailKeys[key]) {
+        delete openedDetailKeys[key];
+      } else {
+        openedDetailKeys[key] = true;
+      }
       render();
     });
   }
@@ -632,16 +665,21 @@ function render(){
     var dClass = diff >= 0 ? 'plus' : 'minus';
     var dSign = diff >= 0 ? '+' : '';
     
+    // 1셜커 차액 텍스트 계산
+    var shulkerDiff = shulkerValue(r.sale - r.max);
+    var shulkerDiffSpan = shulkerDiff < 0 ? ' <span style="color:var(--bad); font-weight:500;">(최고가 대비 ' + fmt0(shulkerDiff) + '원)</span>' : '';
+
     var html = '<div class="mini-card"><div class="mini-head"><div><div class="mini-title">' + r.name + ' ' + tierBadge + '</div></div>';
     html += '<div class="sale-box"><input id="' + saleInputId(r.key) + '" type="number" step="1" inputmode="numeric" value="' + r.sale + '"><div class="sale-hint">판매가</div></div></div>';
     html += '<div class="mini-grid"><div class="stat">원가<br>' + fmt1(r.cost) + '</div><div class="stat">1셜커 판매가<br>' + fmt0(shulkerValue(r.sale)) + '</div>';
     html += '<div class="stat ' + pClass + '">손익<br>' + pSign + fmt1(r.profit) + '</div><div class="stat ' + rClass + '">이율<br>' + rSign + fmtRatio(r.roi) + '</div>';
-    html += '<div class="stat ' + pClass + '" style="grid-column: span 4; font-weight: bold; background: #1e293b;">📦 1셜커 이익: ' + pSign + fmt0(shulkerValue(r.profit)) + '원</div></div>';
+    // 이모지 제거 및 차액 텍스트 반영
+    html += '<div class="stat ' + pClass + '" style="grid-column: span 4; font-weight: bold; background: #1e293b;">1셜커 이익: ' + pSign + fmt0(shulkerValue(r.profit)) + '원' + shulkerDiffSpan + '</div></div>';
     
-    var btnText = (openedDetailKey === r.key) ? '상세 레시피 닫기' : '상세 레시피 보기';
+    var btnText = openedDetailKeys[r.key] ? '상세 레시피 닫기' : '상세 레시피 보기';
     html += '<button class="detail-btn" data-detail-key="' + r.key + '">' + btnText + '</button>';
     
-    if(openedDetailKey === r.key){
+    if(openedDetailKeys[r.key]){
       html += '<div class="inline-detail">';
       for(var j=0; j<r.detailRatio.length; j++){
         html += '<div class="recipe-row"><span>' + r.detailRatio[j][0] + ' <span class="muted">(' + fmtRatio(r.detailRatio[j][2]) + ')</span></span><span>' + fmt1(r.detailRatio[j][1]) + '</span></div>';
@@ -678,7 +716,7 @@ function render(){
 
 function saveState(){
   try {
-    var state = { openedDetailKey: openedDetailKey };
+    var state = { openedDetailKeys: openedDetailKeys };
     var bonus = document.getElementById('bonusRate');
     var pet = document.getElementById('petBonus');
     var skill = document.getElementById('skillLevel');
@@ -707,7 +745,7 @@ function loadState(){
     if(state.bonusRate !== undefined && document.getElementById('bonusRate')) document.getElementById('bonusRate').value = state.bonusRate;
     if(state.petBonus !== undefined && document.getElementById('petBonus')) document.getElementById('petBonus').value = state.petBonus;
     if(state.skillLevel !== undefined && document.getElementById('skillLevel')) document.getElementById('skillLevel').value = state.skillLevel;
-    if(state.openedDetailKey !== undefined) openedDetailKey = state.openedDetailKey;
+    if(state.openedDetailKeys !== undefined) openedDetailKeys = state.openedDetailKeys;
     PRICE_FIELDS.forEach(function(f) {
       var v = document.getElementById(f.id + '_value');
       var u = document.getElementById(f.id + '_unit');
@@ -780,6 +818,18 @@ document.addEventListener('DOMContentLoaded', function() {
   
   var resetBtn = document.getElementById('resetDiscordBtn');
   if(resetBtn) resetBtn.addEventListener('click', resetDiscordPricing);
+  
+  var maxBtn = document.getElementById('maxDiscordBtn');
+  if(maxBtn) {
+    maxBtn.addEventListener('click', function() {
+      var text = RECIPES.map(function(r) {
+        return '🧪[' + r.name + '] | ' + r.max;
+      }).join('\n');
+      var textarea = document.getElementById('discordPaste');
+      if(textarea) textarea.value = text;
+      applyDiscordTextToSales(text);
+    });
+  }
   
   hydrateSaleDefaults();
   
