@@ -276,8 +276,8 @@ var saleState = {};
 
 var PRICE_FIELDS = [
   {id:'price_wart', label:'네더와트', units:['item','stack','shulker']},
-  {id:'price_blaze', label:'발광석 (연료)', units:['item','stack','shulker']},
-  {id:'price_gem', label:'촉매 보석 (5종 공통)', units:['item','stack','shulker']},
+  {id:'price_blaze', label:'발광석 (블레이즈 막대)', units:['item','stack','shulker']},
+  {id:'price_gem', label:'보석 (5종 공통)', units:['item','stack','shulker']},
   {id:'price_gul_sora', label:'굴 & 소라', units:['item','stack','shulker']},
   {id:'price_miyeok_kijo', label:'미역 & 키조개', units:['item','stack','shulker']},
   {id:'price_jeonbok_meongge', label:'전복 & 멍게', units:['item','stack','shulker']},
@@ -287,45 +287,45 @@ var PRICE_FIELDS = [
 var INPUT_IDS = ['bonusRate','petBonus','skillLevel'];
 
 var RECIPES = [
-  {key:'eogyeol', tier:'', name:'어결 (1병당)', max:9, detail:[
+  {key:'eogyeol', tier:'', name:'어결', max:9, detail:[
     ['물병 1개', function(p){return 1;}],
     ['네더와트 1/3개', function(p){return p.wart/3;}],
-    ['연료 1/3회분 (발광석)', function(p){return (p.blaze/40)/3;}]
+    ['양조 1/3회분 (발광석)', function(p){return (p.blaze/40)/3;}]
   ]},
   {key:'fire', tier:'1차', name:'룬ㅣ화염저항', max:270, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
-    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['굴 & 소라 2개', function(p){return p.gul_sora*2;}],
-    ['촉매 보석 1개', function(p){return p.gem;}]
+    ['보석 1개', function(p){return p.gem;}]
   ]},
   {key:'breath', tier:'2차', name:'룬ㅣ호흡', max:311, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
-    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['미역 & 키조개 2개', function(p){return p.miyeok_kijo*2;}],
-    ['촉매 보석 1개', function(p){return p.gem;}]
+    ['보석 1개', function(p){return p.gem;}]
   ]},
   {key:'speed', tier:'3차', name:'룬ㅣ신속', max:342, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
-    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['전복 & 멍게 2개', function(p){return p.jeonbok_meongge*2;}],
-    ['촉매 보석 1개', function(p){return p.gem;}]
+    ['보석 1개', function(p){return p.gem;}]
   ]},
   {key:'haste', tier:'4차', name:'룬ㅣ성급', max:603, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
-    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['홍합 & 해삼 2개', function(p){return p.honghap_haesam*2;}],
-    ['촉매 보석 2개', function(p){return p.gem*2;}]
+    ['보석 2개', function(p){return p.gem*2;}]
   ]},
   {key:'power', tier:'5차', name:'룬ㅣ힘', max:608, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
-    ['연료 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['홍합 & 해삼 2개', function(p){return p.honghap_haesam*2;}],
-    ['촉매 보석 2개', function(p){return p.gem*2;}]
+    ['보석 2개', function(p){return p.gem*2;}]
   ]}
 ];
 
@@ -391,6 +391,13 @@ function normalizeName(name){
 function resolveRecipeByName(rawName){
   var normalized = normalizeName(rawName);
   if(!normalized) return null;
+
+  // 어결 및 어색한 결정 별칭 매핑 처리
+  if(normalized === '어색한결정' || normalized === '어결') {
+    for(var i=0; i<RECIPES.length; i++){
+      if(RECIPES[i].key === 'eogyeol') return RECIPES[i];
+    }
+  }
 
   for(var i=0; i<RECIPES.length; i++){
     if(normalizeName(RECIPES[i].name) === normalized) return RECIPES[i];
@@ -535,7 +542,6 @@ function renderUpdateSummary(){
     var shulkerProfitText = res ? (res.profit >= 0 ? '+' : '') + fmt0(shulkerValue(res.profit)) : '-';
     var roiText = res ? (res.roi >= 0 ? '+' : '') + fmtRatio(res.roi) : '-';
     
-    // 최고가 차액 계산 로직 추가
     var shulkerDiff = res ? shulkerValue(item.newValue - res.max) : 0;
     var shulkerDiffText = shulkerDiff < 0 ? fmt0(shulkerDiff) + '원' : '-';
     var shulkerDiffClass = shulkerDiff < 0 ? 'minus' : '';
@@ -665,15 +671,13 @@ function render(){
     var dClass = diff >= 0 ? 'plus' : 'minus';
     var dSign = diff >= 0 ? '+' : '';
     
-    // 1셜커 차액 텍스트 계산
     var shulkerDiff = shulkerValue(r.sale - r.max);
-    var shulkerDiffSpan = shulkerDiff < 0 ? ' <span style="color:var(--bad); font-weight:500;">(최고가 대비 ' + fmt0(shulkerDiff) + '원)</span>' : '';
+    var shulkerDiffSpan = shulkerDiff < 0 ? ' <span style="color:var(--bad); font-weight:500;">(최고가 차액 ' + fmt0(shulkerDiff) + '원)</span>' : '';
 
     var html = '<div class="mini-card"><div class="mini-head"><div><div class="mini-title">' + r.name + ' ' + tierBadge + '</div></div>';
     html += '<div class="sale-box"><input id="' + saleInputId(r.key) + '" type="number" step="1" inputmode="numeric" value="' + r.sale + '"><div class="sale-hint">판매가</div></div></div>';
     html += '<div class="mini-grid"><div class="stat">원가<br>' + fmt1(r.cost) + '</div><div class="stat">1셜커 판매가<br>' + fmt0(shulkerValue(r.sale)) + '</div>';
     html += '<div class="stat ' + pClass + '">손익<br>' + pSign + fmt1(r.profit) + '</div><div class="stat ' + rClass + '">이율<br>' + rSign + fmtRatio(r.roi) + '</div>';
-    // 이모지 제거 및 차액 텍스트 반영
     html += '<div class="stat ' + pClass + '" style="grid-column: span 4; font-weight: bold; background: #1e293b;">1셜커 이익: ' + pSign + fmt0(shulkerValue(r.profit)) + '원' + shulkerDiffSpan + '</div></div>';
     
     var btnText = openedDetailKeys[r.key] ? '상세 레시피 닫기' : '상세 레시피 보기';
