@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연금술사 계산기</title>
+  <style>
+    :root{
+      --panel:#1f2937;
+      --line:#374151;
+      --text:#e5e7eb;
+      --accent:#60a5fa;
+      --good:#4ade80;
+      --bad:#fb7185;
+      --input:#0f172a;
+      --chip:#111827;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Pretendard,system-ui,sans-serif;background:#0f172a;color:var(--text);padding:14px}
+    .wrap{max-width:1180px;margin:auto}
+    .card{background:var(--panel);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+    h1{margin:0;font-size:24px;color:var(--accent)}
+    h2{margin:0 0 10px;font-size:18px;color:#dbeafe}
+    .desc{margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.5}
+    .grid{display:grid;gap:10px}
+    .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .field label{font-size:13px;color:#bfdbfe;font-weight:700}
+    .inline-input{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:6px}
+    input,select,button{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;color:white;width:100%;min-width:0;font-size:14px}
+    button{cursor:pointer}
+    .mobile-results{display:grid;gap:10px}
+    .mini-card{background:#111827;border-radius:12px;padding:14px}
+    .mini-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+    .mini-title{font-weight:700;font-size:16px}
+    .tier-badge{font-size:12px;color:#93c5fd;font-weight:600}
+    .plus{color:var(--good)}
+    .minus{color:var(--bad)}
+    .mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+    .stat{background:#1f2937;padding:8px;border-radius:8px;font-size:12px;line-height:1.4;text-align:center}
+    .stat.plus{color:var(--good)}
+    .stat.minus{color:var(--bad)}
+    .sale-box{display:grid;grid-template-columns:minmax(0,1fr) 60px;gap:6px;align-items:center;min-width:140px}
+    .sale-box input{padding:6px 8px}
+    .sale-hint{font-size:11px;color:#94a3b8}
+    textarea{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;color:white;width:100%;min-height:120px;resize:vertical;font-family:inherit}
+    .paste-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .paste-actions button{width:auto;padding:8px 14px;border-radius:9px;font-size:13px}
+    .primary-btn{background:#1d4ed8;border:1px solid #60a5fa;color:#dbeafe;font-weight:600}
+    .secondary-btn{background:#374151;border:1px solid #4b5563;color:#e5e7eb;font-weight:600}
+    #discordPaste{max-width:300px;display:block}
+    .paste-actions{max-width:300px}
+    .discord-apply-notice{max-width:760px;margin-top:10px;display:grid;gap:4px}
+    .discord-apply-line{font-size:13px;line-height:1.45}
+    .discord-apply-line.main{color:#bfdbfe;font-weight:700}
+    .discord-apply-line.sub{color:#facc15;font-weight:600}
+    .discord-apply-line.empty{color:#94a3b8;font-weight:500}
+    .update-summary{display:grid;gap:8px;margin-top:12px;align-items:start;max-width:760px}
+    .update-empty{font-size:13px;color:#94a3b8;margin-top:4px}
+    .update-list{display:grid;gap:10px;justify-items:start;max-width:760px;width:100%}
+    .update-header{display:grid;grid-template-columns:264px 110px 110px 110px 110px;gap:8px;align-items:end;width:704px;max-width:100%}
+    .update-header-spacer{height:1px}
+    .update-header-label{font-size:15px;font-weight:800;color:#bfdbfe;white-space:nowrap;text-align:center;display:flex;align-items:center;justify-content:center;height:28px;width:100%}
+    .update-item{
+      background:transparent;
+      border:none;
+      border-radius:0;
+      padding:0;
+      box-shadow:none;
+      display:grid;
+      grid-template-columns:264px 110px 110px 110px 110px;
+      align-items:center;
+      gap:8px;
+      width:704px;
+      max-width:100%;
+    }
+    .update-item.max{border-left:5px solid #10b981}
+    .update-item.m1{border-left:5px solid #84cc16}
+    .update-item.m2{border-left:5px solid #eab308}
+    .update-item.m3{border-left:5px solid #f59e0b}
+    .update-item.m4{border-left:5px solid #fb7185}
+    .update-item.m5{border-left:5px solid #ef4444}
+    .update-item.minus{border-left:5px solid #ef4444}
+    .update-main{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+      white-space:nowrap;
+      overflow:hidden;
+      background:#0b1226;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:12px 16px;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+    }
+    .update-item.max .update-main{
+      background:rgba(16,185,129,.14);
+      border-color:rgba(16,185,129,.42);
+    }
+    .update-name{font-weight:800;color:#f8fafc;font-size:16px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;}
+    .update-price{font-weight:800;color:#f8fafc;font-size:16px;line-height:1.2;flex:0 0 auto;}
+    .update-diff{font-weight:900;font-size:16px;line-height:1.2;flex:0 0 auto;}
+    .update-diff.max{color:#34d399}
+    .update-diff.minus{color:#facc15}
+    .update-metric{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#0b1226;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:12px 10px;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      min-width:0;
+      text-align:center;
+    }
+    .update-value{font-weight:800;text-align:center;min-width:0;font-size:14px;line-height:1.2;white-space:nowrap;}
+    .update-metric .plus{font-weight:900}
+    .update-metric .minus{font-weight:900}
+    .update-mobile-stats{display:none}
+
+    .recipe-grid{display:grid;gap:10px;margin-top:10px}
+    .recipe{background:#111827;border-radius:10px;padding:10px}
+    .recipe-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:15px;color:#dbeafe;font-weight:700}
+    .recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;margin:4px 0;color:#d1d5db;max-width:460px}
+    .recipe-total{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.12);display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;font-weight:700;max-width:460px}
+    .recipe-row span:last-child,.recipe-total span:last-child{text-align:right}
+
+    /* 토글 스위치 디자인 */
+    .toggle-container { display:inline-flex; align-items:center; gap:8px; background:#111827; padding:6px 12px; border-radius:8px; border:1px solid var(--line); }
+    .toggle-label { font-size:12px; color:#cbd5e1; font-weight:700; }
+    .switch { position:relative; display:inline-block; width:36px; height:20px; margin:0; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#374151; transition:.3s; border-radius:20px; }
+    .slider:before { position:absolute; content:""; height:14px; width:14px; left:3px; bottom:3px; background-color:white; transition:.3s; border-radius:50%; }
+    input:checked + .slider { background-color:#34d399; }
+    input:checked + .slider:before { transform:translateX(16px); }
+    .toggle-row-box { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+
+    .detail-btn{
+      margin-top:8px;
+      background:#1d4ed8;
+      border:1px solid #60a5fa;
+      color:#dbeafe;
+      font-size:12px;
+      font-weight:600;
+      padding:8px 12px;
+      border-radius:8px;
+      width:auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      align-self:flex-start;
+    }
+    .inline-detail{
+      margin-top:10px;
+      background:#0f172a;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+      padding:10px;
+    }
+    .inline-detail .recipe-row{ margin:6px 0; }
+    .inline-detail .recipe-total{ margin-top:8px; }
+    .hidden-front{ display:none !important; }
+
+    @media (min-width:781px){
+      .mobile-results { grid-template-columns:repeat(2,minmax(0,1fr)) }
+      .recipe-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (min-width:900px){
+      .update-item,.update-header{grid-template-columns:264px 110px 110px 110px 110px;max-width:704px;width:704px}
+    }
+    @media (max-width:780px){
+      body{padding:10px}
+      .grid.cols-3,.grid.cols-4{grid-template-columns:repeat(2, 1fr)}
+      .inline-input{grid-template-columns:minmax(0,1fr) 90px}
+      .mini-grid{grid-template-columns:repeat(2, 1fr)}
+      .recipe-head,.mini-head{flex-direction:column}
+      .sale-box{grid-template-columns:minmax(0,1fr) 80px;min-width:0;width:100%}
+      .detail-btn{width:100%;display:flex}
+      .recipe-row,.recipe-total{max-width:none;grid-template-columns:minmax(0,1fr) 72px}
+      #discordPaste,.paste-actions,.discord-apply-notice,.update-summary,.update-list{max-width:none;width:100%}
+      .update-item{ grid-template-columns:1fr; align-items:flex-start; gap:8px; width:100%; }
+      .update-main{ white-space:normal; flex-wrap:wrap; gap:8px; }
+      .update-name,.update-price,.update-diff{font-size:15px}
+      .update-header{display:none}
+      .update-metric{display:none}
+      .update-mobile-stats{
+        display:grid;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        gap:8px;
+        width:100%;
+        background:#0b1226;
+        border:1px solid rgba(255,255,255,.06);
+        border-radius:14px;
+        padding:10px 12px;
+        box-shadow:0 8px 20px rgba(0,0,0,.18);
+      }
+      .update-mobile-col{display:grid;gap:4px;text-align:center;min-width:0}
+      .update-mobile-label{font-size:12px;color:#cbd5e1;font-weight:700;white-space:nowrap}
+      .update-mobile-value{font-size:14px;font-weight:900;white-space:nowrap}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>연금술사 계산기</h1>
+    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능</div>
+  </div>
+
+  <div class="card">
+    <h2>스킬 및 세팅 효과</h2>
+    <div class="grid cols-3">
+      <div class="field">
+        <label for="bonusRate">신발 강화 (룬 생산 2배율)</label>
+        <select id="bonusRate">
+          <option value="0">노강 (0%)</option>
+          <option value="0.01">+3강 (1%)</option>
+          <option value="0.03">+5강 (3%)</option>
+          <option value="0.05">+7강 (5%)</option>
+          <option value="0.06">+10강 (6%)</option>
+          <option value="0.08">+13강 (8%)</option>
+          <option value="0.10">+15강 (10%)</option>
+          <option value="0.15">+17강 (15%)</option>
+          <option value="0.20">+20강 (20%)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="petBonus">연금 펫 버프 (재료 반환율)</label>
+        <select id="petBonus">
+          <option value="0">펫 없음 (0%)</option>
+          <option value="0.01">0레벨 (1%)</option>
+          <option value="0.02">1레벨 (2%)</option>
+          <option value="0.03">2레벨 (3%)</option>
+          <option value="0.04">3레벨 (4%)</option>
+          <option value="0.045">4레벨 (4.5%)</option>
+          <option value="0.05">5레벨 (5%)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="skillLevel">연금술 스킬 레벨 (0 ~ 200)</label>
+        <input id="skillLevel" type="number" placeholder="0" value="0">
+      </div>
+    </div>
+    
+    <div class="toggle-row-box">
+      <div class="toggle-container">
+        <span class="toggle-label">기분 50 이상 (+10%)</span>
+        <label class="switch"><input type="checkbox" class="toggle-mood" onchange="syncMood(this.checked)"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-container">
+        <span class="toggle-label">행운 룬 사용 (+35%)</span>
+        <label class="switch"><input type="checkbox" class="toggle-fortune" onchange="syncFortune(this.checked)"><span class="slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>재료 시세</h2>
+    <div class="grid cols-4" id="priceGrid"></div>
+  </div>
+
+  <div class="card">
+    <h2>디코에서 변동가를 붙여 넣어주세요!</h2>
+    <textarea id="discordPaste" placeholder="🧪[룬 ㅣ 화염저항] | 199 → 260"></textarea>
+    <div class="paste-actions">
+      <button id="applyDiscordBtn" class="primary-btn">변경가 적용</button>
+      <button id="resetDiscordBtn" class="secondary-btn">전체 초기화</button>
+      <button id="maxDiscordBtn" class="secondary-btn">최대치 입력</button>
+    </div>
+    
+    <div class="toggle-row-box" style="margin-top:12px;">
+      <div class="toggle-container">
+        <span class="toggle-label">기분 50 이상 (+10%)</span>
+        <label class="switch"><input type="checkbox" class="toggle-mood" onchange="syncMood(this.checked)"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-container">
+        <span class="toggle-label">행운 룬 사용 (+35%)</span>
+        <label class="switch"><input type="checkbox" class="toggle-fortune" onchange="syncFortune(this.checked)"><span class="slider"></span></label>
+      </div>
+    </div>
+    <div id="discordApplyNotice" class="discord-apply-notice"></div>
+    <div id="updateSummary" class="update-summary"></div>
+  </div>
+
+  <div class="card">
+    <h2>손익 결과</h2>
+    <div id="mobileResults" class="mobile-results"></div>
+  </div>
+
+  <div class="card hidden-front" id="detailRecipeSection">
+    <h2>상세 레시피</h2>
+    <div id="recipeGrid" class="recipe-grid"></div>
+  </div>
+</div>
+
+<script>
+var STACK = 64;
+var SHULKER = 1728;
+var STORAGE_KEY = 'alchemist_calc_v12_final';
+var DISCORD_TEXT_KEY = 'alchemist_discord_text_v12';
+var DISCORD_UPDATES_KEY = 'alchemist_discord_updates_v12';
+var openedDetailKeys = {};
+var saleState = {};
+var moodChecked = false;
+var fortuneChecked = false;
+
+var PRICE_FIELDS = [
+  {id:'price_wart', label:'네더와트', units:['item','stack','shulker']},
+  {id:'price_blaze', label:'발광석 (블레이즈 막대)', units:['item','stack','shulker']},
+  {id:'price_gem', label:'보석 (5종 공통)', units:['item','stack','shulker']},
+  {id:'price_gul_sora', label:'굴 & 소라', units:['item','stack','shulker']},
+  {id:'price_miyeok_kijo', label:'미역 & 키조개', units:['item','stack','shulker']},
+  {id:'price_jeonbok_meongge', label:'전복 & 멍게', units:['item','stack','shulker']},
+  {id:'price_honghap_haesam', label:'홍합 & 해삼', units:['item','stack','shulker']}
+];
+
+var INPUT_IDS = ['bonusRate','petBonus','skillLevel'];
+
+var RECIPES = [
+  {key:'eogyeol', tier:'', name:'어결', max:5, detail:[
+    ['물병 1개', function(p){return 1;}],
+    ['네더와트 1/3개', function(p){return p.wart/3;}],
+    ['양조 1/3회분 (발광석)', function(p){return (p.blaze/40)/3;}]
+  ]},
+  {key:'fire', tier:'1차', name:'룬ㅣ화염저항', max:270, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['굴 & 소라 2개', function(p){return p.gul_sora*2;}],
+    ['보석 1개', function(p){return p.gem;}]
+  ]},
+  {key:'breath', tier:'2차', name:'룬ㅣ호흡', max:311, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['미역 & 키조개 2개', function(p){return p.miyeok_kijo*2;}],
+    ['보석 1개', function(p){return p.gem;}]
+  ]},
+  {key:'speed', tier:'3차', name:'룬ㅣ신속', max:342, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['전복 & 멍게 2개', function(p){return p.jeonbok_meongge*2;}],
+    ['보석 1개', function(p){return p.gem;}]
+  ]},
+  {key:'haste', tier:'4차', name:'룬ㅣ성급', max:603, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['홍합 & 해삼 2개', function(p){return p.honghap_haesam*2;}],
+    ['보석 2개', function(p){return p.gem*2;}]
+  ]},
+  {key:'power', tier:'5차', name:'룬ㅣ힘', max:608, detail:[
+    ['물병 3개', function(p){return 3;}],
+    ['네더와트 1개', function(p){return p.wart;}],
+    ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
+    ['홍합 & 해삼 2개', function(p){return p.honghap_haesam*2;}],
+    ['보석 2개', function(p){return p.gem*2;}]
+  ]}
+];
+
+function syncMood(checked) {
+  moodChecked = checked;
+  updateTogglesDOM();
+  saveState();
+  render();
+}
+
+function syncFortune(checked) {
+  fortuneChecked = checked;
+  updateTogglesDOM();
+  saveState();
+  render();
+}
+
+function updateTogglesDOM() {
+  var tMood = document.querySelectorAll('.toggle-mood');
+  for(var i=0; i<tMood.length; i++) tMood[i].checked = moodChecked;
+  var tFortune = document.querySelectorAll('.toggle-fortune');
+  for(var j=0; j<tFortune.length; j++) tFortune[j].checked = fortuneChecked;
+}
+
+function unitLabel(unit){
+  if(unit==='item') return '1개';
+  if(unit==='stack') return '1세트(64)';
+  if(unit==='shulker') return '1셜커(1728)';
+  return unit;
+}
+function unitSize(unit){
+  if(unit==='stack') return STACK;
+  if(unit==='shulker') return SHULKER;
+  return 1;
+}
+function num(v){ var n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
+function fmt1(v){ return num(v).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+function fmt0(v){ return Math.round(num(v)).toLocaleString('ko-KR'); }
+function fmtRatio(v){ return (num(v)*100).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%'; }
+function shulkerValue(v){ return num(v) * SHULKER; }
+
+function perUnit(id){
+  var el = document.getElementById(id + '_value');
+  var ut = document.getElementById(id + '_unit');
+  if(!el || !ut) return 0;
+  return num(el.value) / unitSize(ut.value);
+}
+
+function buildPriceGrid(){
+  var html = PRICE_FIELDS.map(function(f) {
+    INPUT_IDS.push(f.id + '_value');
+    INPUT_IDS.push(f.id + '_unit');
+    var opts = f.units.map(function(u) { return '<option value="' + u + '"' + (u === 'stack' ? ' selected' : '') + '>' + unitLabel(u) + '</option>'; }).join('');
+    return '<div class="field"><label for="' + f.id + '_value">' + f.label + '</label><div class="inline-input"><input id="' + f.id + '_value" type="number" step="0.1"><select id="' + f.id + '_unit">' + opts + '</select></div></div>';
+  }).join('');
+  document.getElementById('priceGrid').innerHTML = html;
+}
+
+function getPrices(){
+  var p = {
+    wart: perUnit('price_wart'),
+    blaze: perUnit('price_blaze'),
+    gem: perUnit('price_gem'),
+    gul_sora: perUnit('price_gul_sora'),
+    miyeok_kijo: perUnit('price_miyeok_kijo'),
+    jeonbok_meongge: perUnit('price_jeonbok_meongge'),
+    honghap_haesam: perUnit('price_honghap_haesam')
+  };
+  
+  var skillLvl = num(document.getElementById('skillLevel') ? document.getElementById('skillLevel').value : 0);
+  var bonusProb = (skillLvl * 1.5) + (moodChecked ? 10 : 0) + (fortuneChecked ? 35 : 0);
+  p.expectedYield = 3 + (bonusProb / 100);
+
+  return p;
+}
+
+function saleInputId(key){ return 'sale_' + key; }
+
+function normalizeName(name){
+  return String(name || '')
+    .replace(/🧪/g, '')
+    .replace(/[\[\]｜|ㅣl]/g, ' ')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\d+(?:\.\d+)?\s*원?/g, ' ')
+    .replace(/[→>\-]+/g, ' ')
+    .replace(/\s+/g,'')
+    .trim();
+}
+
+function resolveRecipeByName(rawName){
+  var normalized = normalizeName(rawName);
+  if(!normalized) return null;
+
+  if(normalized === '어색한결정' || normalized === '어결') {
+    for(var i=0; i<RECIPES.length; i++){
+      if(RECIPES[i].key === 'eogyeol') return RECIPES[i];
+    }
+  }
+
+  for(var i=0; i<RECIPES.length; i++){
+    if(normalizeName(RECIPES[i].name) === normalized) return RECIPES[i];
+  }
+  for(var j=0; j<RECIPES.length; j++){
+    if(normalizeName(RECIPES[j].name).indexOf(normalized) !== -1 || normalized.indexOf(normalizeName(RECIPES[j].name)) !== -1) return RECIPES[j];
+  }
+  return null;
+}
+
+function parseDiscordUpdates(text){
+  var lines = String(text || '').split(/\n+/);
+  var updates = [];
+
+  for(var i=0; i<lines.length; i++){
+    var line = lines[i].trim();
+    if(!line) continue;
+    var rawName = '';
+    var newValue = null;
+
+    var arrowMatch = line.match(/(?:🧪\s*)?(?:\[(.+?)\]|([^|]+?))\s*[\|ㅣ]?\s*(-?\d+(?:\.\d+)?)\s*[→>\-]+\s*(-?\d+(?:\.\d+)?)/);
+    if(arrowMatch){
+      rawName = (arrowMatch[1] || arrowMatch[2] || '').trim();
+      newValue = num(arrowMatch[4]);
+    } else {
+      var simpleMatch = line.match(/(?:🧪\s*)?(?:\[(.+?)\]|([^|]+?))\s*[\|ㅣ]?\s*(-?\d+(?:\.\d+)?)(?:\s*원)?$/);
+      if(!simpleMatch) continue;
+      rawName = (simpleMatch[1] || simpleMatch[2] || '').trim();
+      newValue = num(simpleMatch[3]);
+    }
+
+    var recipe = resolveRecipeByName(rawName);
+    if(!recipe || !Number.isFinite(newValue) || recipe.key === 'eogyeol') continue;
+    
+    updates.push({
+      key: recipe.key,
+      name: recipe.name,
+      rawName: rawName,
+      newValue: newValue,
+      max: recipe.max,
+      diffFromMax: newValue - recipe.max
+    });
+  }
+
+  var deduped = [];
+  var seen = {};
+  for(var k=updates.length-1; k>=0; k--){
+    var item = updates[k];
+    if(!seen[item.key]){
+      seen[item.key] = true;
+      deduped.push(item);
+    }
+  }
+  return deduped.reverse();
+}
+
+function getStoredDiscordUpdates(){
+  try{
+    var raw = localStorage.getItem(DISCORD_UPDATES_KEY);
+    var parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){ return []; }
+}
+
+function renderDiscordApplyNotice(updates){
+  var box = document.getElementById('discordApplyNotice');
+  if(!box) return;
+
+  var safeUpdates = Array.isArray(updates) ? updates : [];
+  var appliedLine = '';
+  var missingLine = '';
+
+  if(safeUpdates.length === 0){
+    appliedLine = '';
+    missingLine = '아직 적용된 변경가가 없습니다.';
+  } else {
+    appliedLine = safeUpdates.length + '개 품목이 반영되었습니다.';
+    var updatedKeys = {};
+    for(var i=0; i<safeUpdates.length; i++) updatedKeys[safeUpdates[i].key] = true;
+    
+    var missingNames = [];
+    for(var j=0; j<RECIPES.length; j++){
+      if(RECIPES[j].key === 'eogyeol') continue;
+      if(!updatedKeys[RECIPES[j].key]) missingNames.push(RECIPES[j].name);
+    }
+
+    if(missingNames.length === 0){
+      missingLine = '';
+    } else {
+      missingLine = '(' + missingNames.join(', ') + ' 빠짐)';
+    }
+  }
+
+  var html = '';
+  if(appliedLine) html += '<div class="discord-apply-line main">' + appliedLine + '</div>';
+  var subClass = appliedLine ? 'sub' : 'empty';
+  html += '<div class="discord-apply-line ' + subClass + '">' + missingLine + '</div>';
+  box.innerHTML = html;
+}
+
+function renderUpdateSummary(){
+  var box = document.getElementById('updateSummary');
+  if(!box) return;
+  var updates = getStoredDiscordUpdates();
+  if(updates.length === 0){
+    box.innerHTML = '';
+    return;
+  }
+
+  var dataArr = buildAllData();
+  var resultMap = {};
+  for(var i=0; i<dataArr.length; i++) resultMap[dataArr[i].key] = dataArr[i];
+
+  var visible = [];
+  for(var j=0; j<updates.length; j++){
+    var u = updates[j];
+    var bucket = u.diffFromMax >= 0 ? 'max' : Math.abs(Math.round(u.diffFromMax));
+    visible.push({
+      key: u.key, name: u.name, newValue: u.newValue, diffFromMax: u.diffFromMax,
+      bucket: bucket, result: resultMap[u.key]
+    });
+  }
+
+  visible.sort(function(a, b) {
+    var idxA = -1, idxB = -1;
+    for(var k=0; k<RECIPES.length; k++) {
+      if(RECIPES[k].key === a.key) idxA = k;
+      if(RECIPES[k].key === b.key) idxB = k;
+    }
+    return idxA - idxB;
+  });
+
+  if(visible.length === 0){
+    box.innerHTML = '';
+    return;
+  }
+
+  var html = '<div class="update-header"><div class="update-header-spacer"></div><div class="update-header-label">개당손익</div><div class="update-header-label">1셜커 마진</div><div class="update-header-label">이율</div><div class="update-header-label">최고가 차액</div></div><div class="update-list">';
+  
+  for(var m=0; m<visible.length; m++){
+    var item = visible[m];
+    var res = item.result;
+    var totalProfitText = res ? (res.profit >= 0 ? '+' : '') + fmt1(res.profit) : '-';
+    var shulkerProfitText = res ? (res.profit >= 0 ? '+' : '') + fmt0(shulkerValue(res.profit)) : '-';
+    var roiText = res ? (res.roi >= 0 ? '+' : '') + fmtRatio(res.roi) : '-';
+    
+    var shulkerDiff = res ? shulkerValue(item.newValue - res.max) : 0;
+    var shulkerDiffText = shulkerDiff < 0 ? fmt0(shulkerDiff) + '원' : '-';
+    var shulkerDiffClass = shulkerDiff < 0 ? 'minus' : '';
+
+    var diffClass = item.bucket === 'max' ? 'max' : 'minus';
+    var rowClass = item.bucket === 'max' ? 'max' : 'm' + item.bucket;
+    var diffText = item.bucket === 'max' ? '최고가' : '(-' + item.bucket + ')';
+    var plusClass = res && res.profit >= 0 ? 'plus' : 'minus';
+    var rClass = res && res.roi >= 0 ? 'plus' : 'minus';
+
+    html += '<div class="update-item ' + rowClass + '"><div class="update-main"><span class="update-name">[' + item.name + ']</span><span class="update-price">' + fmt0(item.newValue) + '원</span><span class="update-diff ' + diffClass + '">' + diffText + '</span></div>';
+    html += '<div class="update-metric"><span class="update-value ' + plusClass + '">' + totalProfitText + '</span></div>';
+    html += '<div class="update-metric"><span class="update-value ' + plusClass + '">' + shulkerProfitText + '</span></div>';
+    html += '<div class="update-metric"><span class="update-value ' + rClass + '">' + roiText + '</span></div>';
+    html += '<div class="update-metric"><span class="update-value ' + shulkerDiffClass + '">' + shulkerDiffText + '</span></div>';
+    html += '<div class="update-mobile-stats"><div class="update-mobile-col"><span class="update-mobile-label">손익</span><span class="update-mobile-value ' + plusClass + '">' + totalProfitText + '</span></div><div class="update-mobile-col"><span class="update-mobile-label">1셜커 이익</span><span class="update-mobile-value ' + plusClass + '">' + shulkerProfitText + '</span></div><div class="update-mobile-col"><span class="update-mobile-label">이율</span><span class="update-mobile-value ' + rClass + '">' + roiText + '</span></div><div class="update-mobile-col"><span class="update-mobile-label">최고가 차액</span><span class="update-mobile-value ' + shulkerDiffClass + '">' + shulkerDiffText + '</span></div></div></div>';
+  }
+  html += '</div>';
+  box.innerHTML = html;
+}
+
+function applyDiscordTextToSales(text){
+  var updates = parseDiscordUpdates(text);
+  var saleMap = {};
+  RECIPES.forEach(function(r) { saleMap[r.key] = r.max; });
+  updates.forEach(function(u) { saleMap[u.key] = u.newValue; });
+  saleState = Object.assign({}, saleState, saleMap);
+
+  var textarea = document.getElementById('discordPaste');
+  if(textarea) textarea.value = text;
+  try {
+    localStorage.setItem(DISCORD_TEXT_KEY, text || '');
+    localStorage.setItem(DISCORD_UPDATES_KEY, JSON.stringify(updates));
+  } catch(e){}
+  
+  render();
+  renderDiscordApplyNotice(updates);
+}
+
+function resetDiscordPricing(){
+  var textarea = document.getElementById('discordPaste');
+  if(textarea) textarea.value = '';
+  try {
+    localStorage.removeItem(DISCORD_TEXT_KEY);
+    localStorage.removeItem(DISCORD_UPDATES_KEY);
+  } catch(e){}
+  
+  saleState = {};
+  RECIPES.forEach(function(r) { saleState[r.key] = r.max; });
+  render();
+  renderDiscordApplyNotice([]);
+}
+
+function buildAllData(){
+  var p = getPrices();
+  var bonusEl = document.getElementById('bonusRate');
+  var shoeBonus = bonusEl ? num(bonusEl.value) : 0;
+  var petEl = document.getElementById('petBonus');
+  var pet = petEl ? num(petEl.value) : 0;
+  
+  var petDiscountFactor = 1 - (pet * 0.5 * 0.33);
+
+  return RECIPES.map(function(r) {
+    var detail = r.detail.map(function(item) { return [item[0], item[1](p)]; });
+    var raw = 0;
+    for(var i=0; i<detail.length; i++) raw += detail[i][1];
+    
+    var cost = 0;
+    
+    if(r.key === 'eogyeol') {
+        cost = raw * (3 / p.expectedYield);
+    } else {
+        cost = (raw * petDiscountFactor) / (1 + shoeBonus);
+    }
+
+    var saleVal = saleState[r.key];
+    var sale = (r.key === 'eogyeol') ? 5 : (saleVal !== undefined ? num(saleVal) : r.max);
+    
+    var profit = sale - cost;
+    var roi = cost > 0 ? (profit / cost) : (sale > 0 ? 1 : 0);
+    
+    var detailRatio = [];
+    for(var j=0; j<detail.length; j++){
+      detailRatio.push([detail[j][0], detail[j][1], raw > 0 ? (detail[j][1] / raw) : 0]);
+    }
+    return {key: r.key, tier: r.tier, name: r.name, max: r.max, detail: detail, detailRatio: detailRatio, raw: raw, cost: cost, sale: sale, profit: profit, roi: roi};
+  });
+}
+
+function attachSaleEvents(){
+  RECIPES.forEach(function(r) {
+    if(r.key === 'eogyeol') return;
+    var el = document.getElementById(saleInputId(r.key));
+    if(!el || el.getAttribute('data-bound')) return;
+    el.setAttribute('data-bound', '1');
+
+    el.addEventListener('input', function() { 
+      saleState[r.key] = num(el.value); 
+      saveState(); 
+    });
+    el.addEventListener('blur', function() { 
+      saleState[r.key] = num(el.value); 
+      saveState(); 
+      render(); 
+    });
+    el.addEventListener('keydown', function(e) { if(e.key === 'Enter'){ e.preventDefault(); el.blur(); } });
+  });
+}
+
+function attachDetailEvents(){
+  var btns = document.querySelectorAll('[data-detail-key]');
+  for(var i=0; i<btns.length; i++){
+    var btn = btns[i];
+    if(btn.getAttribute('data-bound')) continue;
+    btn.setAttribute('data-bound', '1');
+    btn.addEventListener('click', function(e) {
+      var key = e.target.getAttribute('data-detail-key');
+      if(openedDetailKeys[key]) {
+        delete openedDetailKeys[key];
+      } else {
+        openedDetailKeys[key] = true;
+      }
+      render();
+    });
+  }
+}
+
+function render(){
+  var data = buildAllData();
+
+  var mobileHtml = data.map(function(r) {
+    var tierBadge = r.tier ? '<span class="tier-badge">· ' + r.tier + '</span>' : '';
+    var pClass = r.profit >= 0 ? 'plus' : 'minus';
+    var rClass = r.roi >= 0 ? 'plus' : 'minus';
+    var pSign = r.profit >= 0 ? '+' : '';
+    var rSign = r.roi >= 0 ? '+' : '';
+    
+    var html = '<div class="mini-card"><div class="mini-head"><div><div class="mini-title">' + r.name + ' ' + tierBadge + '</div></div>';
+    
+    if(r.key === 'eogyeol'){
+      html += '<div class="sale-box"><input type="number" value="5" disabled><div class="sale-hint">고정가</div></div></div>';
+    } else {
+      html += '<div class="sale-box"><input id="' + saleInputId(r.key) + '" type="number" step="1" inputmode="numeric" value="' + r.sale + '"><div class="sale-hint">판매가</div></div></div>';
+    }
+
+    html += '<div class="mini-grid"><div class="stat">원가<br>' + fmt1(r.cost) + '</div><div class="stat">1셜커 판매가<br>' + fmt0(shulkerValue(r.sale)) + '</div>';
+    html += '<div class="stat ' + pClass + '">손익<br>' + pSign + fmt1(r.profit) + '</div><div class="stat ' + rClass + '">이율<br>' + rSign + fmtRatio(r.roi) + '</div>';
+    
+    var shulkerDiff = shulkerValue(r.sale - r.max);
+    var shulkerDiffSpan = (r.key !== 'eogyeol' && shulkerDiff < 0) ? ' <span style="color:var(--bad); font-weight:500;">(최고가 차액 ' + fmt0(shulkerDiff) + '원)</span>' : '';
+
+    html += '<div class="stat ' + pClass + '" style="grid-column: span 4; font-weight: bold; background: #1e293b;">1셜커 이익: ' + pSign + fmt0(shulkerValue(r.profit)) + '원' + shulkerDiffSpan + '</div></div>';
+    
+    var btnText = openedDetailKeys[r.key] ? '상세 레시피 닫기' : '상세 레시피 보기';
+    html += '<button class="detail-btn" data-detail-key="' + r.key + '">' + btnText + '</button>';
+    
+    if(openedDetailKeys[r.key]){
+      html += '<div class="inline-detail">';
+      for(var j=0; j<r.detail.length; j++){
+        html += '<div class="recipe-row"><span>' + r.detail[j][0] + '</span><span>' + fmt1(r.detail[j][1]) + '</span></div>';
+      }
+      if(r.key === 'eogyeol'){
+        html += '<div class="toggle-row-box" style="border-top:1px dashed var(--line); padding-top:6px; margin-top:6px;"><div class="toggle-container"><span class="toggle-label">기분 50 이상 (+10%)</span><label class="switch"><input type="checkbox" class="toggle-mood" ' + (moodChecked?'checked':'') + ' onchange="syncMood(this.checked)"><span class="slider"></span></label></div><div class="toggle-container"><span class="toggle-label">행운 룬 사용 (+35%)</span><label class="switch"><input type="checkbox" class="toggle-fortune" ' + (fortuneChecked?'checked':'') + ' onchange="syncFortune(this.checked)"><span class="slider"></span></label></div></div>';
+      }
+      if(Math.abs(r.cost - r.raw) > 0.000001 && r.key !== 'eogyeol') {
+          html += '<div class="recipe-total"><span>원재료 합</span><span>' + fmt1(r.raw) + '</span></div>';
+      }
+      html += '<div class="recipe-total"><span>최종 원가</span><span>' + fmt1(r.cost) + '</span></div></div>';
+    }
+    html += '</div>';
+    return html;
+  }).join('');
+
+  var gridHtml = data.map(function(r) {
+    var tierBadge = r.tier ? '<span class="tier-badge">' + r.tier + '</span>' : '';
+    var pClass = r.profit >= 0 ? 'plus' : 'minus';
+    var pSign = r.profit >= 0 ? '+' : '';
+    
+    var html = '<div class="recipe"><div class="recipe-head"><span>' + r.name + ' ' + tierBadge + '</span><span class="' + pClass + '">손익 ' + pSign + fmt1(r.profit) + '</span></div>';
+    for(var j=0; j<r.detail.length; j++){
+      html += '<div class="recipe-row"><span>' + r.detail[j][0] + '</span><span>' + fmt1(r.detail[j][1]) + '</span></div>';
+    }
+    if(r.key === 'eogyeol'){
+        html += '<div class="toggle-row-box" style="border-top:1px dashed var(--line); padding-top:6px; margin-top:6px;"><div class="toggle-container"><span class="toggle-label">기분 50 이상 (+10%)</span><label class="switch"><input type="checkbox" class="toggle-mood" ' + (moodChecked?'checked':'') + ' onchange="syncMood(this.checked)"><span class="slider"></span></label></div><div class="toggle-container"><span class="toggle-label">행운 룬 사용 (+35%)</span><label class="switch"><input type="checkbox" class="toggle-fortune" ' + (fortuneChecked?'checked':'') + ' onchange="syncFortune(this.checked)"><span class="slider"></span></label></div></div>';
+    }
+    if(Math.abs(r.cost - r.raw) > 0.000001 && r.key !== 'eogyeol') {
+        html += '<div class="recipe-total"><span>원재료 합</span><span>' + fmt1(r.raw) + '</span></div>';
+    }
+    html += '<div class="recipe-total"><span>최종 원가</span><span>' + fmt1(r.cost) + '</span></div></div>';
+    return html;
+  }).join('');
+
+  document.getElementById('mobileResults').innerHTML = mobileHtml;
+  document.getElementById('recipeGrid').innerHTML = gridHtml;
+
+  attachSaleEvents();
+  attachDetailEvents();
+  renderUpdateSummary();
+  updateTogglesDOM();
+  saveState();
+}
+
+function saveState(){
+  try {
+    var state = { openedDetailKeys: openedDetailKeys, moodChecked: moodChecked, fortuneChecked: fortuneChecked };
+    var bonus = document.getElementById('bonusRate');
+    var pet = document.getElementById('petBonus');
+    var skill = document.getElementById('skillLevel');
+    if(bonus) state.bonusRate = bonus.value;
+    if(pet) state.petBonus = pet.value;
+    if(skill) state.skillLevel = skill.value;
+    
+    PRICE_FIELDS.forEach(function(f) {
+      var v = document.getElementById(f.id + '_value');
+      var u = document.getElementById(f.id + '_unit');
+      if(v) state[f.id + '_value'] = v.value;
+      if(u) state[f.id + '_unit'] = u.value;
+    });
+    RECIPES.forEach(function(r) {
+      if(r.key !== 'eogyeol'){
+        state[saleInputId(r.key)] = saleState[r.key] !== undefined ? saleState[r.key] : r.max;
+      }
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e) {}
+}
+
+function loadState(){
+  var raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    var state = JSON.parse(raw);
+    if(state.bonusRate !== undefined && document.getElementById('bonusRate')) document.getElementById('bonusRate').value = state.bonusRate;
+    if(state.petBonus !== undefined && document.getElementById('petBonus')) document.getElementById('petBonus').value = state.petBonus;
+    if(state.skillLevel !== undefined && document.getElementById('skillLevel')) document.getElementById('skillLevel').value = state.skillLevel;
+    if(state.openedDetailKeys !== undefined) openedDetailKeys = state.openedDetailKeys;
+    if(state.moodChecked !== undefined) moodChecked = state.moodChecked;
+    if(state.fortuneChecked !== undefined) fortuneChecked = state.fortuneChecked;
+    
+    PRICE_FIELDS.forEach(function(f) {
+      var v = document.getElementById(f.id + '_value');
+      var u = document.getElementById(f.id + '_unit');
+      if(v && state[f.id + '_value'] !== undefined) v.value = state[f.id + '_value'];
+      if(u && state[f.id + '_unit'] !== undefined) u.value = state[f.id + '_unit'];
+    });
+    window.__saleState = state;
+  }catch(e){ window.__saleState = {}; }
+}
+
+function hydrateSaleDefaults(){
+  saleState = {};
+  RECIPES.forEach(function(r) {
+    var saved = undefined;
+    if(window.__saleState && window.__saleState[saleInputId(r.key)] !== undefined) {
+        saved = window.__saleState[saleInputId(r.key)];
+    }
+    saleState[r.key] = saved !== undefined ? num(saved) : r.max;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  buildPriceGrid();
+  loadState();
+  updateTogglesDOM();
+  
+  var bonusRateEl = document.getElementById('bonusRate');
+  var petBonusEl = document.getElementById('petBonus');
+  var skillLevelEl = document.getElementById('skillLevel');
+  
+  if(bonusRateEl) {
+    bonusRateEl.addEventListener('input', render);
+    bonusRateEl.addEventListener('change', render);
+  }
+  if(petBonusEl) petBonusEl.addEventListener('change', render);
+  if(skillLevelEl) skillLevelEl.addEventListener('input', render);
+  
+  PRICE_FIELDS.forEach(function(f) {
+    var v = document.getElementById(f.id + '_value');
+    var u = document.getElementById(f.id + '_unit');
+    if(v) v.addEventListener('input', render);
+    if(u) u.addEventListener('change', render);
+  });
+  
+  var discordPasteEl = document.getElementById('discordPaste');
+  if(discordPasteEl){
+    discordPasteEl.addEventListener('input', function() {
+      var text = discordPasteEl.value;
+      var normalized = text.replace(/:test_tube:/g, '🧪');
+      if(normalized !== text){
+        var start = discordPasteEl.selectionStart;
+        var end = discordPasteEl.selectionEnd;
+        discordPasteEl.value = normalized;
+        try{ discordPasteEl.setSelectionRange(start, end); }catch(e){}
+      }
+    });
+    
+    discordPasteEl.addEventListener('paste', function() {
+      requestAnimationFrame(function() {
+        var text = discordPasteEl.value;
+        var normalized = text.replace(/:test_tube:/g, '🧪');
+        if(normalized !== text) discordPasteEl.value = normalized;
+      });
+    });
+  }
+  
+  var applyBtn = document.getElementById('applyDiscordBtn');
+  if(applyBtn) applyBtn.addEventListener('click', function() {
+    applyDiscordTextToSales(document.getElementById('discordPaste').value);
+  });
+  
+  var resetBtn = document.getElementById('resetDiscordBtn');
+  if(resetBtn) resetBtn.addEventListener('click', resetDiscordPricing);
+  
+  var maxBtn = document.getElementById('maxDiscordBtn');
+  if(maxBtn) {
+    maxBtn.addEventListener('click', function() {
+      var text = RECIPES.map(function(r) {
+        if(r.key === 'eogyeol') return '';
+        return '🧪[' + r.name + '] | ' + r.max;
+      }).filter(Boolean).join('\n');
+      var textarea = document.getElementById('discordPaste');
+      if(textarea) textarea.value = text;
+      applyDiscordTextToSales(text);
+    });
+  }
+  
+  hydrateSaleDefaults();
+  
+  try {
+    var savedDiscordText = localStorage.getItem(DISCORD_TEXT_KEY);
+    if(savedDiscordText){
+      var textarea = document.getElementById('discordPaste');
+      if(textarea) textarea.value = savedDiscordText;
+      applyDiscordTextToSales(savedDiscordText);
+    } else {
+      renderDiscordApplyNotice([]);
+    }
+  } catch(e) {}
+  
+  render();
+});
+</script>
+</body>
+</html>
