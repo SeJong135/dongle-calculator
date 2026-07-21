@@ -33,24 +33,18 @@
     .dash-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
     
     @media (min-width: 1200px) {
-      /* PC 화면: 동일한 너비 3단 */
       .dashboard-layout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
       .trade-sea-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
       .trade-inputs-sea { grid-template-columns: 1fr !important; }
       
-      /* 하단 3x2 꽉 차게 고정 */
       .mobile-results { grid-template-columns: repeat(3, 1fr) !important; }
-      .recipe-grid { grid-template-columns: repeat(3, 1fr) !important; }
     }
     @media (min-width: 850px) and (max-width: 1199px) {
-      /* 태블릿/작은 모니터 */
       .dashboard-layout { display: grid; grid-template-columns: 1fr 1fr; }
       .dash-col:nth-child(3) { grid-column: 1 / -1; }
       .trade-sea-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
       
-      /* 하단 2x3 꽉 차게 고정 */
       .mobile-results { grid-template-columns: repeat(2, 1fr) !important; }
-      .recipe-grid { grid-template-columns: repeat(2, 1fr) !important; }
     }
     @media (max-width: 849px) {
       .trade-sea-grid { display: flex; flex-direction: column; gap: 10px; }
@@ -71,18 +65,22 @@
     input,select,button{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;color:white;width:100%;min-width:0;font-size:14px}
     button{cursor:pointer}
     
-    /* 손익 결과 카드 */
+    /* 손익 결과 카드 (높이 일치 및 내부 정렬) */
     .mobile-results{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
-    .mini-card{background:#111827;border-radius:12px;padding:12px;display:flex;flex-direction:column;}
+    .mini-card{background:#111827;border-radius:12px;padding:12px;display:flex;flex-direction:column; height:100%;}
     .mini-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
     .mini-title{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .tier-badge{font-size:12px;color:#93c5fd;font-weight:600}
     .plus{color:var(--good)}
     .minus{color:var(--bad)}
-    .mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;flex:1;}
-    .stat{background:#1f2937;padding:6px 4px;border-radius:8px;font-size:12px;line-height:1.3;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;}
+    .mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
+    
+    /* 카드 내 스탯 상자 높이 고정으로 어긋남 방지 */
+    .stat{background:#1f2937;padding:6px 4px;border-radius:8px;font-size:12px;line-height:1.3;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;height:64px;}
+    .stat.full-row{grid-column: span 4; font-weight: bold; flex-direction: row; height:32px; margin-top: 2px;}
     .stat.plus{color:var(--good)}
     .stat.minus{color:var(--bad)}
+    
     .sale-box{display:grid;grid-template-columns:minmax(0,1fr) 60px;gap:6px;align-items:center;min-width:140px}
     .sale-box input{padding:6px 8px}
     .sale-hint{font-size:11px;color:#94a3b8}
@@ -136,14 +134,6 @@
     .update-mobile-label{font-size:11px;color:#cbd5e1;font-weight:700;white-space:nowrap}
     .update-mobile-value{font-size:13px;font-weight:900;white-space:nowrap}
 
-    /* 상세 레시피 */
-    .recipe-grid{display:grid;gap:12px;margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
-    .recipe{background:#111827;border-radius:10px;padding:12px}
-    .recipe-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:15px;color:#dbeafe;font-weight:700}
-    .recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;margin:4px 0;color:#d1d5db;max-width:460px}
-    .recipe-total{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.12);display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;font-weight:700;max-width:460px}
-    .recipe-row span:last-child,.recipe-total span:last-child{text-align:right}
-
     .toggle-container { display:inline-flex; align-items:center; gap:8px; background:#111827; padding:6px 12px; border-radius:8px; border:1px solid var(--line); }
     .toggle-label { font-size:12px; color:#cbd5e1; font-weight:700; }
     .switch { position:relative; display:inline-block; width:36px; height:20px; margin:0; }
@@ -154,10 +144,15 @@
     input:checked + .slider:before { transform:translateX(16px); }
     .toggle-row-box { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
 
-    .inline-detail{margin-top:10px;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;}
-    .inline-detail .recipe-row{ margin:6px 0; }
-    .inline-detail .recipe-total{ margin-top:8px; }
-    .hidden-front{ display:none !important; }
+    /* 상세 레시피 박스 플렉스 처리 (최종 원가 줄맞춤용) */
+    .inline-detail{margin-top:10px;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;display:flex;flex-direction:column;flex:1;}
+    .recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;margin:4px 0;color:#d1d5db;max-width:100%;}
+    .recipe-row span:last-child{text-align:right;}
+    
+    /* 하단 푸터부분 마진오토로 바닥에 고정 */
+    .recipe-bottom{margin-top:auto;}
+    .recipe-total{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.12);display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;font-weight:700;max-width:100%;}
+    .recipe-total span:last-child{text-align:right;}
 
     .unit-btn { background: #1f2937; border: 1px solid #4b5563; border-radius: 8px; color: #93c5fd; font-size: 13px; font-weight: bold; cursor: pointer; padding: 0 10px; white-space: nowrap; transition: 0.2s; user-select: none; }
     .unit-btn:hover { background: #374151; }
@@ -194,7 +189,7 @@
 <div class="wrap">
   <div class="card">
     <h1>연금술사 계산기</h1>
-    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0.6 최종 수정 : 2026-07-22</div>
+    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0 최종 수정 : 2026-07-22</div>
   </div>
 
   <div class="dashboard-layout">
@@ -347,7 +342,6 @@ var fortuneChecked = false;
 
 window.tradeTotals = { sea: 0, gem: 0 };
 
-// 메인 시세 및 정산기 단위 로직 (보석은 상자 제외, 해산물/네더와트는 상자 포함)
 var UNIT_CYCLE = {
   main_other:   [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'shulker', l:'1셜커'}],
   main_boxable: [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'box', l:'1상자'}, {u:'shulker', l:'1셜커'}],
@@ -910,21 +904,6 @@ function attachSaleEvents(){
   });
 }
 
-function attachDetailEvents(){
-  var btns = document.querySelectorAll('[data-detail-key]');
-  for(var i=0; i<btns.length; i++){
-    var btn = btns[i];
-    if(btn.getAttribute('data-bound')) continue;
-    btn.setAttribute('data-bound', '1');
-    btn.addEventListener('click', function(e) {
-      var key = e.target.getAttribute('data-detail-key');
-      if(openedDetailKeys[key]) delete openedDetailKeys[key];
-      else openedDetailKeys[key] = true;
-      render();
-    });
-  }
-}
-
 function render(){
   var data = buildAllData();
   var p = getPrices();
@@ -949,8 +928,8 @@ function render(){
     
     var shulkerDiff = shulkerValue(r.sale - r.max);
 
-    // 1번째 줄 : 1셜커 이익 (모든 카드 공통)
-    html += '<div class="stat ' + pClass + '" style="grid-column: span 4; font-weight: bold; background: #1e293b; flex-direction:row;">1셜커 이익: ' + pSign + fmt0(shulkerValue(r.profit)) + '원</div>';
+    // 1번째 줄 : 1셜커 이익 (모든 카드 공통 스타일, 완벽히 동일한 구조)
+    html += '<div class="stat full-row ' + pClass + '" style="background: #1e293b;"><span>1셜커 이익: ' + pSign + fmt0(shulkerValue(r.profit)) + '원</span></div>';
     
     // 2번째 줄 : 어결(물병 1셜커 수익) / 기타룬(최고가 차액) 두 줄 완벽 통일
     if(r.key === 'eogyeol'){
@@ -959,31 +938,36 @@ function render(){
       var sProfit = (yPotions * r.sale) - (1728 * r.raw);
       var sClass = sProfit >= 0 ? 'plus' : 'minus';
       var sSign = sProfit >= 0 ? '+' : '';
-      html += '<div class="stat ' + sClass + '" style="grid-column: span 4; font-weight: bold; background: rgba(52, 211, 153, 0.1); color: #34d399; flex-direction:row; margin-top:2px;">물병 1셜커 수익: ' + sSign + fmt0(sProfit) + '원</div>';
+      html += '<div class="stat full-row ' + sClass + '" style="background: rgba(52, 211, 153, 0.1); color: #34d399;"><span>물병 1셜커 수익: ' + sSign + fmt0(sProfit) + '원</span></div>';
     } else {
       if(shulkerDiff < 0) {
-        html += '<div class="stat minus" style="grid-column: span 4; font-weight: bold; background: rgba(251, 113, 133, 0.1); color: var(--bad); flex-direction:row; margin-top:2px;">최고가 차액: ' + fmt0(shulkerDiff) + '원</div>';
+        html += '<div class="stat full-row minus" style="background: rgba(251, 113, 133, 0.1); color: var(--bad);"><span>최고가 차액: ' + fmt0(shulkerDiff) + '원</span></div>';
       } else {
-        html += '<div class="stat plus" style="grid-column: span 4; font-weight: bold; background: rgba(52, 211, 153, 0.1); color: #34d399; flex-direction:row; margin-top:2px;">최고가 적용 중</div>';
+        html += '<div class="stat full-row plus" style="background: rgba(52, 211, 153, 0.1); color: #34d399;"><span>최고가 적용 중</span></div>';
       }
     }
     
-    html += '</div>';
+    html += '</div>'; // close mini-grid
     
-    // 상세보기 버튼 영구 제거 및 상세 레시피 상시 오픈 고정
+    // 상세 레시피 컨테이너 (플렉스 적용으로 아래 공간 쫙 채우기)
     html += '<div class="inline-detail">';
     for(var j=0; j<r.detail.length; j++){
       html += '<div class="recipe-row"><span>' + r.detail[j][0] + '</span><span>' + fmt1(r.detail[j][1]) + '</span></div>';
     }
+    
+    // 최종 원가 및 토글 영역을 담는 푸터 (margin-top: auto 로 바닥에 착 붙임)
+    html += '<div class="recipe-bottom">';
     if(r.key === 'eogyeol'){
       html += '<div class="toggle-row-box" style="border-top:1px dashed var(--line); padding-top:6px; margin-top:6px;"><div class="toggle-container"><span class="toggle-label">기분 50 이상 (+10%)</span><label class="switch"><input type="checkbox" class="toggle-mood" ' + (moodChecked?'checked':'') + ' onchange="syncMood(this.checked)"><span class="slider"></span></label></div><div class="toggle-container"><span class="toggle-label">행운 룬 사용 (+35%)</span><label class="switch"><input type="checkbox" class="toggle-fortune" ' + (fortuneChecked?'checked':'') + ' onchange="syncFortune(this.checked)"><span class="slider"></span></label></div></div>';
     }
     if(Math.abs(r.cost - r.raw) > 0.000001 && r.key !== 'eogyeol') {
         html += '<div class="recipe-total"><span>원재료 합</span><span>' + fmt1(r.raw) + '</span></div>';
     }
-    html += '<div class="recipe-total"><span>최종 원가</span><span>' + fmt1(r.cost) + '</span></div></div>';
+    html += '<div class="recipe-total"><span>최종 원가</span><span>' + fmt1(r.cost) + '</span></div>';
+    html += '</div>'; // close recipe-bottom
     
-    html += '</div>';
+    html += '</div>'; // close inline-detail
+    html += '</div>'; // close mini-card
     return html;
   }).join('');
 
