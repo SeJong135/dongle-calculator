@@ -194,7 +194,7 @@
 <div class="wrap">
   <div class="card">
     <h1>연금술사 계산기</h1>
-    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0.5 최종 수정 : 2026-07-21</div>
+    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0.6 최종 수정 : 2026-07-22</div>
   </div>
 
   <div class="dashboard-layout">
@@ -290,8 +290,8 @@
         <div>
           <div class="trade-row">
             <div class="trade-checks">
-              <span class="tier-label" style="background:#4b5563;"></span>
-              <span style="font-size:13px; font-weight:bold; color:#e5e7eb; padding-left:2px;">보석</span>
+              <span class="tier-label" style="background:#4b5563;">공통</span>
+              <span style="font-size:13px; font-weight:bold; color:#e5e7eb; padding-left:2px;">보석 5종</span>
             </div>
             <div class="trade-inputs">
               <div class="trade-input-group">
@@ -325,30 +325,29 @@
       </div>
     </div>
     
-  </div> <div class="card bottom-card">
+  </div>
+
+  <div class="card bottom-card">
     <h2>손익 결과</h2>
     <div id="mobileResults" class="mobile-results"></div>
   </div>
 
-  <div class="card bottom-card hidden-front" id="detailRecipeSection" style="margin-top:14px;">
-    <h2>상세 레시피</h2>
-    <div id="recipeGrid" class="recipe-grid"></div>
-  </div>
 </div>
 
 <script>
 var STACK = 64;
 var SHULKER = 1728;
-var STORAGE_KEY = 'alchemist_calc_v24_final';
-var DISCORD_TEXT_KEY = 'alchemist_discord_text_v24';
-var DISCORD_UPDATES_KEY = 'alchemist_discord_updates_v24';
+var STORAGE_KEY = 'alchemist_calc_v_final';
+var DISCORD_TEXT_KEY = 'alchemist_discord_text_v_final';
+var DISCORD_UPDATES_KEY = 'alchemist_discord_updates_v_final';
 var openedDetailKeys = {};
 var saleState = {};
 var moodChecked = false;
 var fortuneChecked = false;
 
 window.tradeTotals = { sea: 0, gem: 0 };
-  
+
+// 메인 시세 및 정산기 단위 로직 (보석은 상자 제외, 해산물/네더와트는 상자 포함)
 var UNIT_CYCLE = {
   main_other:   [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'shulker', l:'1셜커'}],
   main_boxable: [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'box', l:'1상자'}, {u:'shulker', l:'1셜커'}],
@@ -674,6 +673,7 @@ function perUnit(id){
   return num(el.value) / unitSize(ut.value);
 }
 
+// 연금술 마진 계산 핵심 로직
 function getPrices(){
   var p = {
     wart: perUnit('price_wart'),
@@ -948,10 +948,11 @@ function render(){
     html += '<div class="stat ' + pClass + '"><span>손익</span><span style="font-weight:bold;">' + pSign + fmt1(r.profit) + '</span></div><div class="stat ' + rClass + '"><span>이율</span><span style="font-weight:bold;">' + rSign + fmtRatio(r.roi) + '</span></div>';
     
     var shulkerDiff = shulkerValue(r.sale - r.max);
-    var shulkerDiffSpan = (r.key !== 'eogyeol' && shulkerDiff < 0) ? ' <span style="color:var(--bad); font-weight:500;">(최고가 차액 ' + fmt0(shulkerDiff) + '원)</span>' : '';
 
-    html += '<div class="stat ' + pClass + '" style="grid-column: span 4; font-weight: bold; background: #1e293b; flex-direction:row;">1셜커 이익: ' + pSign + fmt0(shulkerValue(r.profit)) + '원' + shulkerDiffSpan + '</div>';
+    // 1번째 줄 : 1셜커 이익 (모든 카드 공통)
+    html += '<div class="stat ' + pClass + '" style="grid-column: span 4; font-weight: bold; background: #1e293b; flex-direction:row;">1셜커 이익: ' + pSign + fmt0(shulkerValue(r.profit)) + '원</div>';
     
+    // 2번째 줄 : 어결(물병 1셜커 수익) / 기타룬(최고가 차액) 두 줄 완벽 통일
     if(r.key === 'eogyeol'){
       var brews = 1728 / 3;
       var yPotions = brews * p.expectedYield;
@@ -959,10 +960,17 @@ function render(){
       var sClass = sProfit >= 0 ? 'plus' : 'minus';
       var sSign = sProfit >= 0 ? '+' : '';
       html += '<div class="stat ' + sClass + '" style="grid-column: span 4; font-weight: bold; background: rgba(52, 211, 153, 0.1); color: #34d399; flex-direction:row; margin-top:2px;">물병 1셜커 수익: ' + sSign + fmt0(sProfit) + '원</div>';
+    } else {
+      if(shulkerDiff < 0) {
+        html += '<div class="stat minus" style="grid-column: span 4; font-weight: bold; background: rgba(251, 113, 133, 0.1); color: var(--bad); flex-direction:row; margin-top:2px;">최고가 차액: ' + fmt0(shulkerDiff) + '원</div>';
+      } else {
+        html += '<div class="stat plus" style="grid-column: span 4; font-weight: bold; background: rgba(52, 211, 153, 0.1); color: #34d399; flex-direction:row; margin-top:2px;">최고가 적용 중</div>';
+      }
     }
     
     html += '</div>';
     
+    // 상세보기 버튼 영구 제거 및 상세 레시피 상시 오픈 고정
     html += '<div class="inline-detail">';
     for(var j=0; j<r.detail.length; j++){
       html += '<div class="recipe-row"><span>' + r.detail[j][0] + '</span><span>' + fmt1(r.detail[j][1]) + '</span></div>';
@@ -979,30 +987,9 @@ function render(){
     return html;
   }).join('');
 
-  var gridHtml = data.map(function(r) {
-    var tierBadge = r.tier ? '<span class="tier-badge">' + r.tier + '</span>' : '';
-    var pClass = r.profit >= 0 ? 'plus' : 'minus';
-    var pSign = r.profit >= 0 ? '+' : '';
-    
-    var html = '<div class="recipe"><div class="recipe-head"><span>' + r.name + ' ' + tierBadge + '</span><span class="' + pClass + '">손익 ' + pSign + fmt1(r.profit) + '</span></div>';
-    for(var j=0; j<r.detail.length; j++){
-      html += '<div class="recipe-row"><span>' + r.detail[j][0] + '</span><span>' + fmt1(r.detail[j][1]) + '</span></div>';
-    }
-    if(r.key === 'eogyeol'){
-        html += '<div class="toggle-row-box" style="border-top:1px dashed var(--line); padding-top:6px; margin-top:6px;"><div class="toggle-container"><span class="toggle-label">기분 50 이상 (+10%)</span><label class="switch"><input type="checkbox" class="toggle-mood" ' + (moodChecked?'checked':'') + ' onchange="syncMood(this.checked)"><span class="slider"></span></label></div><div class="toggle-container"><span class="toggle-label">행운 룬 사용 (+35%)</span><label class="switch"><input type="checkbox" class="toggle-fortune" ' + (fortuneChecked?'checked':'') + ' onchange="syncFortune(this.checked)"><span class="slider"></span></label></div></div>';
-    }
-    if(Math.abs(r.cost - r.raw) > 0.000001 && r.key !== 'eogyeol') {
-        html += '<div class="recipe-total"><span>원재료 합</span><span>' + fmt1(r.raw) + '</span></div>';
-    }
-    html += '<div class="recipe-total"><span>최종 원가</span><span>' + fmt1(r.cost) + '</span></div></div>';
-    return html;
-  }).join('');
-
   document.getElementById('mobileResults').innerHTML = mobileHtml;
-  document.getElementById('recipeGrid').innerHTML = gridHtml;
 
   attachSaleEvents();
-  attachDetailEvents();
   renderUpdateSummary();
   updateTogglesDOM();
   saveState();
