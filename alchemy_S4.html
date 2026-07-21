@@ -21,7 +21,7 @@
     .wrap{max-width:1600px;margin:auto}
     .card{background:var(--panel);border-radius:var(--radius);padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
     
-    /* 하단 결과 & 상세 카드 공통 너비 제한 (배경 휑함 방지) */
+    /* 하단 결과 & 상세 카드 공통 너비 제한 */
     .bottom-card {
       max-width: 1180px;
       margin-left: auto;
@@ -195,7 +195,7 @@
 <div class="wrap">
   <div class="card">
     <h1>연금술사 계산기</h1>
-    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능</div>
+    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0.3 최종 수정 : 2026-07-21</div>
   </div>
 
   <div class="dashboard-layout">
@@ -231,7 +231,7 @@
             </select>
           </div>
           <div class="field">
-            <label for="skillLevel">추출 스킬 레벨</label>
+            <label for="skillLevel">추출 강화 스킬 레벨</label>
             <input id="skillLevel" type="number" placeholder="0" value="0">
           </div>
         </div>
@@ -291,8 +291,8 @@
         <div>
           <div class="trade-row">
             <div class="trade-checks">
-              <span class="tier-label" style="background:#4b5563;">공통</span>
-              <span style="font-size:13px; font-weight:bold; color:#e5e7eb; padding-left:2px;">보석 5종</span>
+              <span class="tier-label" style="background:#4b5563;"></span>
+              <span style="font-size:13px; font-weight:bold; color:#e5e7eb; padding-left:2px;">보석</span>
             </div>
             <div class="trade-inputs">
               <div class="trade-input-group">
@@ -349,8 +349,7 @@ var moodChecked = false;
 var fortuneChecked = false;
 
 window.tradeTotals = { sea: 0, gem: 0 };
-
-// 보석은 상자 제외, 네더와트는 상자 추가 유지
+  
 var UNIT_CYCLE = {
   main_other:   [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'shulker', l:'1셜커'}],
   main_boxable: [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'box', l:'1상자'}, {u:'shulker', l:'1셜커'}],
@@ -362,7 +361,7 @@ var UNIT_CYCLE = {
 
 var PRICE_FIELDS = [
   {id:'price_wart', label:'네더와트', cycle: 'main_boxable'},
-  {id:'price_blaze', label:'발광석(막대)', cycle: 'main_other'},
+  {id:'price_blaze', label:'발광석(블레이즈 막대)', cycle: 'main_other'},
   {id:'price_gem', label:'보석(5종)', cycle: 'main_other'},
   {id:'price_gul_sora', label:'굴 & 소라', cycle: 'main_boxable'},
   {id:'price_miyeok_kijo', label:'미역 & 키조개', cycle: 'main_boxable'},
@@ -959,7 +958,7 @@ function render(){
       var sProfit = (yPotions * r.sale) - (1728 * r.raw);
       var sClass = sProfit >= 0 ? 'plus' : 'minus';
       var sSign = sProfit >= 0 ? '+' : '';
-      html += '<div class="stat ' + sClass + '" style="grid-column: span 4; font-weight: bold; background: rgba(52, 211, 153, 0.1); color: #34d399; flex-direction:row; margin-top:2px;">물병 1셜커 투입 수익: ' + sSign + fmt0(sProfit) + '원</div>';
+      html += '<div class="stat ' + sClass + '" style="grid-column: span 4; font-weight: bold; background: rgba(52, 211, 153, 0.1); color: #34d399; flex-direction:row; margin-top:2px;">물병 1셜커 수익: ' + sSign + fmt0(sProfit) + '원</div>';
     }
     
     html += '</div>';
