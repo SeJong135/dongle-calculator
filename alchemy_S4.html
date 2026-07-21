@@ -21,38 +21,39 @@
     .wrap{max-width:1600px;margin:auto}
     .card{background:var(--panel);border-radius:var(--radius);padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
     
-    /* 하단 결과 & 상세 카드 공통 너비 제한 */
+    /* 하단 결과 및 상세 레시피 카드 너비 제한 */
     .bottom-card {
       max-width: 1180px;
       margin-left: auto;
       margin-right: auto;
     }
 
-    /* 3단 대시보드 1:1:1 레이아웃 */
+    /* 3단 대시보드 1:1:1 메인 레이아웃 */
     .dashboard-layout { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; margin-bottom: 14px; }
     .dash-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
     
     @media (min-width: 1200px) {
-      /* PC 화면: 동일한 너비 3단 */
+      /* PC 환경: 3단 분할 적용 */
       .dashboard-layout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
       .trade-sea-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
       .trade-inputs-sea { grid-template-columns: 1fr !important; }
       
-      /* 하단 3x2 꽉 차게 고정 */
+      /* 하단 결과창 3x2 배열 고정 */
       .mobile-results { grid-template-columns: repeat(3, 1fr) !important; }
       .recipe-grid { grid-template-columns: repeat(3, 1fr) !important; }
     }
     @media (min-width: 850px) and (max-width: 1199px) {
-      /* 태블릿/작은 모니터 */
+      /* 태블릿 및 소형 모니터 환경 */
       .dashboard-layout { display: grid; grid-template-columns: 1fr 1fr; }
       .dash-col:nth-child(3) { grid-column: 1 / -1; }
       .trade-sea-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
       
-      /* 하단 2x3 꽉 차게 고정 */
+      /* 하단 2x3 배열 고정 */
       .mobile-results { grid-template-columns: repeat(2, 1fr) !important; }
       .recipe-grid { grid-template-columns: repeat(2, 1fr) !important; }
     }
     @media (max-width: 849px) {
+      /* 모바일 환경 */
       .trade-sea-grid { display: flex; flex-direction: column; gap: 10px; }
     }
 
@@ -61,6 +62,7 @@
     .desc{margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.5}
     
     .grid{display:grid;gap:10px}
+    /* 반응형 그리드 설정 */
     .dash-col .grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dash-col .grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
@@ -71,7 +73,7 @@
     input,select,button{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;color:white;width:100%;min-width:0;font-size:14px}
     button{cursor:pointer}
     
-    /* 손익 결과 카드 */
+    /* 손익 결과 미니 카드 스타일 */
     .mobile-results{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
     .mini-card{background:#111827;border-radius:12px;padding:12px;display:flex;flex-direction:column;}
     .mini-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
@@ -101,14 +103,14 @@
     .discord-apply-line.sub{color:#facc15;font-weight:600}
     .discord-apply-line.empty{color:#94a3b8;font-weight:500}
     
-    /* 요약 리스트 */
+    /* 시세 반영 요약 리스트 스타일 */
     .update-summary{display:grid;gap:8px;margin-top:12px;align-items:start;width:100%;}
     .update-list{display:grid;gap:10px;justify-items:start;width:100%;}
     .update-item{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;display:flex;flex-direction:column;gap:6px;width:100%;}
     
     .update-main{
       display:grid;
-      grid-template-columns: 85px 65px 70px;
+      grid-template-columns: 85px 65px 70px; /* 열 너비 고정으로 줄맞춤 최적화 */
       align-items:center;
       justify-content:start; 
       gap:12px;
@@ -136,7 +138,7 @@
     .update-mobile-label{font-size:11px;color:#cbd5e1;font-weight:700;white-space:nowrap}
     .update-mobile-value{font-size:13px;font-weight:900;white-space:nowrap}
 
-    /* 상세 레시피 */
+    /* 상세 레시피 표시 영역 */
     .recipe-grid{display:grid;gap:12px;margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
     .recipe{background:#111827;border-radius:10px;padding:12px}
     .recipe-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:15px;color:#dbeafe;font-weight:700}
@@ -144,6 +146,7 @@
     .recipe-total{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.12);display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;font-weight:700;max-width:460px}
     .recipe-row span:last-child,.recipe-total span:last-child{text-align:right}
 
+    /* 토글 스위치 설정 */
     .toggle-container { display:inline-flex; align-items:center; gap:8px; background:#111827; padding:6px 12px; border-radius:8px; border:1px solid var(--line); }
     .toggle-label { font-size:12px; color:#cbd5e1; font-weight:700; }
     .switch { position:relative; display:inline-block; width:36px; height:20px; margin:0; }
@@ -154,12 +157,12 @@
     input:checked + .slider:before { transform:translateX(16px); }
     .toggle-row-box { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
 
-    .detail-btn{margin-top:8px;background:#1d4ed8;border:1px solid #60a5fa;color:#dbeafe;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;width:100%;display:flex;align-items:center;justify-content:center;}
     .inline-detail{margin-top:10px;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;}
     .inline-detail .recipe-row{ margin:6px 0; }
     .inline-detail .recipe-total{ margin-top:8px; }
     .hidden-front{ display:none !important; }
 
+    /* 거래 정산기 스타일 */
     .unit-btn { background: #1f2937; border: 1px solid #4b5563; border-radius: 8px; color: #93c5fd; font-size: 13px; font-weight: bold; cursor: pointer; padding: 0 10px; white-space: nowrap; transition: 0.2s; user-select: none; }
     .unit-btn:hover { background: #374151; }
     .unit-btn:active { background: #4b5563; }
@@ -179,6 +182,7 @@
     .trade-desc { font-size: 12px; color: #60a5fa; font-weight: 600; line-height: 1.4; word-break: keep-all; }
     .trade-subtotal { font-size: 15px; font-weight: bold; color: #4ade80; text-align: right; white-space: nowrap; }
     
+    /* 버튼 1줄 압축 Footer */
     .trade-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 14px; border-top: 1px solid #374151; flex-wrap: wrap; gap: 10px; }
     .trade-total { font-size: 20px; font-weight: 900; color: #facc15; }
     .trade-footer-btns { display: flex; gap: 8px; }
@@ -195,7 +199,7 @@
 <div class="wrap">
   <div class="card">
     <h1>연금술사 계산기</h1>
-    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0.3 최종 수정 : 2026-07-21</div>
+    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0.5 최종 수정 : 2026-07-21</div>
   </div>
 
   <div class="dashboard-layout">
@@ -291,8 +295,8 @@
         <div>
           <div class="trade-row">
             <div class="trade-checks">
-              <span class="tier-label" style="background:#4b5563;"></span>
-              <span style="font-size:13px; font-weight:bold; color:#e5e7eb; padding-left:2px;">보석</span>
+              <span class="tier-label" style="background:#4b5563;">공통</span>
+              <span style="font-size:13px; font-weight:bold; color:#e5e7eb; padding-left:2px;">보석 5종</span>
             </div>
             <div class="trade-inputs">
               <div class="trade-input-group">
@@ -326,7 +330,9 @@
       </div>
     </div>
     
-  </div> <div class="card bottom-card">
+  </div>
+
+  <div class="card bottom-card">
     <h2>손익 결과</h2>
     <div id="mobileResults" class="mobile-results"></div>
   </div>
@@ -340,9 +346,9 @@
 <script>
 var STACK = 64;
 var SHULKER = 1728;
-var STORAGE_KEY = 'alchemist_calc_v24_final';
-var DISCORD_TEXT_KEY = 'alchemist_discord_text_v24';
-var DISCORD_UPDATES_KEY = 'alchemist_discord_updates_v24';
+var STORAGE_KEY = 'alchemist_calc_v_final';
+var DISCORD_TEXT_KEY = 'alchemist_discord_text_v_final';
+var DISCORD_UPDATES_KEY = 'alchemist_discord_updates_v_final';
 var openedDetailKeys = {};
 var saleState = {};
 var moodChecked = false;
@@ -958,27 +964,24 @@ function render(){
       var sProfit = (yPotions * r.sale) - (1728 * r.raw);
       var sClass = sProfit >= 0 ? 'plus' : 'minus';
       var sSign = sProfit >= 0 ? '+' : '';
-      html += '<div class="stat ' + sClass + '" style="grid-column: span 4; font-weight: bold; background: rgba(52, 211, 153, 0.1); color: #34d399; flex-direction:row; margin-top:2px;">물병 1셜커 수익: ' + sSign + fmt0(sProfit) + '원</div>';
+      html += '<div class="stat ' + sClass + '" style="grid-column: span 4; font-weight: bold; background: rgba(52, 211, 153, 0.1); color: #34d399; flex-direction:row; margin-top:2px;">물병 1셜커 투입 수익: ' + sSign + fmt0(sProfit) + '원</div>';
     }
     
     html += '</div>';
     
-    var btnText = openedDetailKeys[r.key] ? '상세 레시피 닫기' : '상세 레시피 보기';
-    html += '<button class="detail-btn" data-detail-key="' + r.key + '">' + btnText + '</button>';
-    
-    if(openedDetailKeys[r.key]){
-      html += '<div class="inline-detail">';
-      for(var j=0; j<r.detail.length; j++){
-        html += '<div class="recipe-row"><span>' + r.detail[j][0] + '</span><span>' + fmt1(r.detail[j][1]) + '</span></div>';
-      }
-      if(r.key === 'eogyeol'){
-        html += '<div class="toggle-row-box" style="border-top:1px dashed var(--line); padding-top:6px; margin-top:6px;"><div class="toggle-container"><span class="toggle-label">기분 50 이상 (+10%)</span><label class="switch"><input type="checkbox" class="toggle-mood" ' + (moodChecked?'checked':'') + ' onchange="syncMood(this.checked)"><span class="slider"></span></label></div><div class="toggle-container"><span class="toggle-label">행운 룬 사용 (+35%)</span><label class="switch"><input type="checkbox" class="toggle-fortune" ' + (fortuneChecked?'checked':'') + ' onchange="syncFortune(this.checked)"><span class="slider"></span></label></div></div>';
-      }
-      if(Math.abs(r.cost - r.raw) > 0.000001 && r.key !== 'eogyeol') {
-          html += '<div class="recipe-total"><span>원재료 합</span><span>' + fmt1(r.raw) + '</span></div>';
-      }
-      html += '<div class="recipe-total"><span>최종 원가</span><span>' + fmt1(r.cost) + '</span></div></div>';
+    // 상세 레시피 내용이 항상 노출되도록 처리 (상세보기 버튼 영구 제거)
+    html += '<div class="inline-detail">';
+    for(var j=0; j<r.detail.length; j++){
+      html += '<div class="recipe-row"><span>' + r.detail[j][0] + '</span><span>' + fmt1(r.detail[j][1]) + '</span></div>';
     }
+    if(r.key === 'eogyeol'){
+      html += '<div class="toggle-row-box" style="border-top:1px dashed var(--line); padding-top:6px; margin-top:6px;"><div class="toggle-container"><span class="toggle-label">기분 50 이상 (+10%)</span><label class="switch"><input type="checkbox" class="toggle-mood" ' + (moodChecked?'checked':'') + ' onchange="syncMood(this.checked)"><span class="slider"></span></label></div><div class="toggle-container"><span class="toggle-label">행운 룬 사용 (+35%)</span><label class="switch"><input type="checkbox" class="toggle-fortune" ' + (fortuneChecked?'checked':'') + ' onchange="syncFortune(this.checked)"><span class="slider"></span></label></div></div>';
+    }
+    if(Math.abs(r.cost - r.raw) > 0.000001 && r.key !== 'eogyeol') {
+        html += '<div class="recipe-total"><span>원재료 합</span><span>' + fmt1(r.raw) + '</span></div>';
+    }
+    html += '<div class="recipe-total"><span>최종 원가</span><span>' + fmt1(r.cost) + '</span></div></div>';
+    
     html += '</div>';
     return html;
   }).join('');
