@@ -63,7 +63,7 @@
     input,select,button{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;color:white;width:100%;min-width:0;font-size:14px}
     button{cursor:pointer}
     
-    /* 손익 결과 카드 (높이 일치 및 내부 정렬) */
+    /* 손익 결과 카드 */
     .mobile-results{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
     .mini-card{background:#111827;border-radius:12px;padding:12px;display:flex;flex-direction:column; height:100%;}
     .mini-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
@@ -96,17 +96,17 @@
     .discord-apply-line.sub{color:#facc15;font-weight:600}
     .discord-apply-line.empty{color:#94a3b8;font-weight:500}
     
-    /* 요약 리스트 */
+    /* 요약 리스트 스타일 */
     .update-summary{display:grid;gap:8px;margin-top:12px;align-items:start;width:100%;}
     .update-list{display:grid;gap:10px;justify-items:start;width:100%;}
     .update-item{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;display:flex;flex-direction:column;gap:6px;width:100%;}
     
     .update-main{
       display:grid;
-      grid-template-columns: 85px 65px 70px;
+      grid-template-columns: 85px 65px 70px auto;
       align-items:center;
       justify-content:start; 
-      gap:12px;
+      gap:10px;
       background:#0b1226;
       border:1px solid rgba(255,255,255,.06);
       border-radius:12px;
@@ -122,11 +122,13 @@
     
     .update-name{font-weight:800;color:#f8fafc;font-size:14px;line-height:1.2;white-space:nowrap;text-align:left;}
     .update-price{font-weight:800;color:#cbd5e1;font-size:14px;text-align:right;}
-    .update-diff{font-weight:900;font-size:14px;text-align:center;}
+    .update-diff{font-weight:900;font-size:13px;text-align:center;}
     .update-diff.max{color:#34d399}
     .update-diff.minus{color:#facc15}
+    .update-roi{font-weight:700;font-size:13px;color:#94a3b8;white-space:nowrap;text-align:left;}
     
-    .update-mobile-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;background:#0b1226;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:8px 10px;}
+    /* 통계 칸 3단 분할로 수정 */
+    .update-mobile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;background:#0b1226;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:8px 10px;}
     .update-mobile-col{display:grid;gap:2px;text-align:center;min-width:0}
     .update-mobile-label{font-size:11px;color:#cbd5e1;font-weight:700;white-space:nowrap}
     .update-mobile-value{font-size:13px;font-weight:900;white-space:nowrap}
@@ -141,7 +143,7 @@
     input:checked + .slider:before { transform:translateX(16px); }
     .toggle-row-box { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
 
-    /* 상세 레시피 박스 (최종 원가 줄맞춤용) */
+    /* 상세 레시피 박스 플렉스 처리 (최종 원가 줄맞춤용) */
     .inline-detail{margin-top:10px;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;display:flex;flex-direction:column;flex:1;}
     .recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;margin:4px 0;color:#d1d5db;max-width:100%;}
     .recipe-row span:last-child{text-align:right;}
@@ -185,7 +187,7 @@
 <div class="wrap">
   <div class="card">
     <h1>연금술사 계산기</h1>
-    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0 최종 수정 : 2026-07-22</div>
+    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0 최종 수정 : 2026-07-27</div>
   </div>
 
   <div class="dashboard-layout">
@@ -266,7 +268,7 @@
       <div class="card" style="display:flex; flex-direction:column;">
         <h2 style="margin-bottom:12px;">해산물 계산기</h2>
         <div id="tradeRowsSea" class="trade-sea-grid">
-          </div>
+        </div>
         <div class="trade-footer">
           <div class="trade-total" id="trade_sea_total">0 냥</div>
           <div class="trade-footer-btns">
@@ -359,40 +361,40 @@ var PRICE_FIELDS = [
 var INPUT_IDS = ['bonusRate','petBonus','skillLevel'];
 
 var RECIPES = [
-  {key:'eogyeol', tier:'', name:'어결', max:5, detail:[
+  {key:'eogyeol', tier:'', name:'어결', min:5, max:5, detail:[
     ['물병 1개', function(p){return 1;}],
     ['네더와트 1/3개', function(p){return p.wart/3;}],
     ['양조 1/3회분 (발광석)', function(p){return (p.blaze/40)/3;}]
   ]},
-  {key:'fire', tier:'1차', name:'화염저항', max:270, detail:[
+  {key:'fire', tier:'1차', name:'화염저항', min:180, max:270, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
     ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['굴 & 소라 2개', function(p){return p.gul_sora*2;}],
     ['보석 1개', function(p){return p.gem;}]
   ]},
-  {key:'breath', tier:'2차', name:'호흡', max:311, detail:[
+  {key:'breath', tier:'2차', name:'호흡', min:207, max:311, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
     ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['미역 & 키조개 2개', function(p){return p.miyeok_kijo*2;}],
     ['보석 1개', function(p){return p.gem;}]
   ]},
-  {key:'speed', tier:'3차', name:'신속', max:342, detail:[
+  {key:'speed', tier:'3차', name:'신속', min:228, max:342, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
     ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['전복 & 멍게 2개', function(p){return p.jeonbok_meongge*2;}],
     ['보석 1개', function(p){return p.gem;}]
   ]},
-  {key:'haste', tier:'4차', name:'성급', max:603, detail:[
+  {key:'haste', tier:'4차', name:'성급', min:402, max:603, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
     ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
     ['홍합 & 해삼 2개', function(p){return p.honghap_haesam*2;}],
     ['보석 2개', function(p){return p.gem*2;}]
   ]},
-  {key:'power', tier:'5차', name:'힘', max:608, detail:[
+  {key:'power', tier:'5차', name:'힘', min:405, max:608, detail:[
     ['물병 3개', function(p){return 3;}],
     ['네더와트 1개', function(p){return p.wart;}],
     ['양조 3회분 (발광석)', function(p){return (p.blaze/40)*3;}],
@@ -439,6 +441,7 @@ function cycleTradeUnit(btn, typeStr) {
   btn.setAttribute('data-u', next.u);
   btn.innerText = next.l;
   calcTrade();
+  saveState();
 }
 
 function buildPriceGrid(){
@@ -602,6 +605,8 @@ function calcTrade() {
   }
   window.tradeTotals.gem = totalGem;
   document.getElementById('trade_gem_total').innerText = fmt0(totalGem) + ' 냥';
+
+  saveState(); 
 }
 
 function syncTradeToMain(type) {
@@ -840,21 +845,44 @@ function renderUpdateSummary(){
     var shulkerDiff = res ? shulkerValue(item.newValue - res.max) : 0;
     var shulkerDiffText = shulkerDiff < 0 ? fmt0(shulkerDiff) + '원' : '-';
     
-    var diffClass = item.bucket === 'max' ? 'max' : 'minus';
-    var rowClass = item.bucket === 'max' ? 'max' : 'm' + item.bucket;
-    var diffText = item.bucket === 'max' ? '최고가' : '(-' + item.bucket + ')';
+    var range = (res && res.max && res.min && res.max > res.min) ? (res.max - res.min) : 0;
+    var topPercent = range > 0 ? ((res.max - item.newValue) / range) * 100 : 0;
+    topPercent = Math.max(0, Math.min(100, topPercent));
+    
+    var topPercentStr;
+    var diffClass = 'minus';
+    
+    if (item.newValue >= res.max) {
+      topPercentStr = '최고점';
+      diffClass = 'max';
+    } else {
+      var displayPercent = Math.max(1, Math.round(topPercent));
+      topPercentStr = '상위 ' + displayPercent + '%';
+      
+      if(displayPercent <= 15) diffClass = 'm1';
+      else if(displayPercent <= 30) diffClass = 'm2';
+      else if(displayPercent <= 50) diffClass = 'm3';
+      else if(displayPercent <= 70) diffClass = 'm4';
+      else diffClass = 'm5';
+    }
+    
+    var rowClass = (item.newValue >= res.max) ? 'max' : 'm' + (Math.ceil(topPercent/20) || 1);
     var plusClass = res && res.profit >= 0 ? 'plus' : 'minus';
-    var rClass = res && res.roi >= 0 ? 'plus' : 'minus';
 
     html += '<div class="update-item ' + rowClass + '">';
-    html += '<div class="update-main"><span class="update-name">[' + item.name + ']</span><span class="update-price">' + fmt0(item.newValue) + '원</span><span class="update-diff ' + diffClass + '">' + diffText + '</span></div>';
+    html += '<div class="update-main">' +
+            '<span class="update-name">[' + item.name + ']</span>' +
+            '<span class="update-price">' + fmt0(item.newValue) + '원</span>' +
+            '<span class="update-diff ' + diffClass + '">' + topPercentStr + '</span>' +
+            '<span class="update-roi">수익률 ' + roiText + '</span>' +
+            '</div>';
     
-    html += '<div class="update-mobile-stats">';
-    html += '<div class="update-mobile-col"><span class="update-mobile-label">손익</span><span class="update-mobile-value ' + plusClass + '">' + totalProfitText + '</span></div>';
-    html += '<div class="update-mobile-col"><span class="update-mobile-label">1셜커 이익</span><span class="update-mobile-value ' + plusClass + '">' + shulkerProfitText + '</span></div>';
-    html += '<div class="update-mobile-col"><span class="update-mobile-label">이율</span><span class="update-mobile-value ' + rClass + '">' + roiText + '</span></div>';
-    html += '<div class="update-mobile-col"><span class="update-mobile-label">최고가 차액</span><span class="update-mobile-value ' + (shulkerDiff < 0 ? 'minus' : '') + '">' + shulkerDiffText + '</span></div>';
-    html += '</div></div>';
+    // 이율 제거 후 3칸 분할 유지
+    html += '<div class="update-mobile-stats">' +
+            '<div class="update-mobile-col"><span class="update-mobile-label">손익</span><span class="update-mobile-value ' + plusClass + '">' + totalProfitText + '</span></div>' +
+            '<div class="update-mobile-col"><span class="update-mobile-label">1셜커 이익</span><span class="update-mobile-value ' + plusClass + '">' + shulkerProfitText + '</span></div>' +
+            '<div class="update-mobile-col"><span class="update-mobile-label">최고가 차액</span><span class="update-mobile-value ' + (shulkerDiff < 0 ? 'minus' : '') + '">' + shulkerDiffText + '</span></div>' +
+            '</div></div>';
   }
   html += '</div>';
   box.innerHTML = html;
@@ -918,7 +946,7 @@ function buildAllData(){
     var profit = sale - cost;
     var roi = cost > 0 ? (profit / cost) : (sale > 0 ? 1 : 0);
     
-    return {key: r.key, tier: r.tier, name: r.name, max: r.max, detail: detail, raw: raw, cost: cost, sale: sale, profit: profit, roi: roi};
+    return {key: r.key, tier: r.tier, name: r.name, min: r.min, max: r.max, detail: detail, raw: raw, cost: cost, sale: sale, profit: profit, roi: roi};
   });
 }
 
@@ -1023,6 +1051,20 @@ function saveState(){
     if(pet) state.petBonus = pet.value;
     if(skill) state.skillLevel = skill.value;
     
+    var tradeFields = [
+      'trade_t1_pv', 'trade_t1_pu', 'trade_t1_qv', 'trade_t1_qu',
+      'trade_t2_pv', 'trade_t2_pu', 'trade_t2_qv', 'trade_t2_qu',
+      'trade_t3_pv', 'trade_t3_pu', 'trade_t3_qv', 'trade_t3_qu',
+      'trade_t4_pv', 'trade_t4_pu', 'trade_t4_qv', 'trade_t4_qu',
+      'trade_g_pv', 'trade_g_pu', 'trade_g_qv', 'trade_g_qu'
+    ];
+    tradeFields.forEach(function(id) {
+      var el = document.getElementById(id);
+      if(el) {
+        state[id] = el.tagName === 'BUTTON' ? el.getAttribute('data-u') : el.value;
+      }
+    });
+    
     PRICE_FIELDS.forEach(function(f) {
       var v = document.getElementById(f.id + '_value');
       var u = document.getElementById(f.id + '_unit');
@@ -1048,6 +1090,44 @@ function loadState(){
     if(state.skillLevel !== undefined && document.getElementById('skillLevel')) document.getElementById('skillLevel').value = state.skillLevel;
     if(state.moodChecked !== undefined) moodChecked = state.moodChecked;
     if(state.fortuneChecked !== undefined) fortuneChecked = state.fortuneChecked;
+    
+    var tradeFields = [
+      {pv:'trade_t1_pv', pu:'trade_t1_pu', qv:'trade_t1_qv', qu:'trade_t1_qu'},
+      {pv:'trade_t2_pv', pu:'trade_t2_pu', qv:'trade_t2_qv', qu:'trade_t2_qu'},
+      {pv:'trade_t3_pv', pu:'trade_t3_pu', qv:'trade_t3_qv', qu:'trade_t3_qu'},
+      {pv:'trade_t4_pv', pu:'trade_t4_pu', qv:'trade_t4_qv', qu:'trade_t4_qu'}
+    ];
+    tradeFields.forEach(function(ids) {
+      if(state[ids.pv] !== undefined && document.getElementById(ids.pv)) document.getElementById(ids.pv).value = state[ids.pv];
+      if(state[ids.qv] !== undefined && document.getElementById(ids.qv)) document.getElementById(ids.qv).value = state[ids.qv];
+      if(state[ids.pu] !== undefined && document.getElementById(ids.pu)) {
+        var puBtn = document.getElementById(ids.pu);
+        puBtn.setAttribute('data-u', state[ids.pu]);
+        var puMatch = UNIT_CYCLE.sea_p.find(function(x){ return x.u === state[ids.pu]; });
+        if(puMatch) puBtn.innerText = puMatch.l;
+      }
+      if(state[ids.qu] !== undefined && document.getElementById(ids.qu)) {
+        var quBtn = document.getElementById(ids.qu);
+        quBtn.setAttribute('data-u', state[ids.qu]);
+        var quMatch = UNIT_CYCLE.sea_q.find(function(x){ return x.u === state[ids.qu]; });
+        if(quMatch) quBtn.innerText = quMatch.l;
+      }
+    });
+
+    if(state['trade_g_pv'] !== undefined && document.getElementById('trade_g_pv')) document.getElementById('trade_g_pv').value = state['trade_g_pv'];
+    if(state['trade_g_qv'] !== undefined && document.getElementById('trade_g_qv')) document.getElementById('trade_g_qv').value = state['trade_g_qv'];
+    if(state['trade_g_pu'] !== undefined && document.getElementById('trade_g_pu')) {
+      var gPuBtn = document.getElementById('trade_g_pu');
+      gPuBtn.setAttribute('data-u', state['trade_g_pu']);
+      var gPuMatch = UNIT_CYCLE.gem_p.find(function(x){ return x.u === state['trade_g_pu']; });
+      if(gPuMatch) gPuBtn.innerText = gPuMatch.l;
+    }
+    if(state['trade_g_qu'] !== undefined && document.getElementById('trade_g_qu')) {
+      var gQuBtn = document.getElementById('trade_g_qu');
+      gQuBtn.setAttribute('data-u', state['trade_g_qu']);
+      var gQuMatch = UNIT_CYCLE.gem_q.find(function(x){ return x.u === state['trade_g_qu']; });
+      if(gQuMatch) gQuBtn.innerText = gQuMatch.l;
+    }
     
     PRICE_FIELDS.forEach(function(f) {
       var v = document.getElementById(f.id + '_value');
@@ -1085,6 +1165,7 @@ document.addEventListener('DOMContentLoaded', function() {
   buildTradeSeaGrid();
   loadState();
   updateTogglesDOM();
+  calcTrade();
   
   var bonusRateEl = document.getElementById('bonusRate');
   var petBonusEl = document.getElementById('petBonus');
