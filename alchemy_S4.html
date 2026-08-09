@@ -21,14 +21,8 @@
     .wrap{max-width:1600px;margin:auto}
     .card{background:var(--panel);border-radius:var(--radius);padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
     
-    /* 하단 결과 공통 너비 제한 */
-    .bottom-card {
-      max-width: 1180px;
-      margin-left: auto;
-      margin-right: auto;
-    }
+    .bottom-card { max-width: 1180px; margin-left: auto; margin-right: auto; }
 
-    /* 3단 대시보드 1:1:1 레이아웃 */
     .dashboard-layout { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; margin-bottom: 14px; }
     .dash-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
     
@@ -49,7 +43,7 @@
     }
 
     h1{margin:0;font-size:24px;color:var(--accent)}
-    h2{margin:0 0 10px;font-size:18px;color:#dbeafe}
+    h2{margin:0 0 10px;font-size:18px;color:#dbeafe; display:flex; align-items:center; gap:6px;}
     .desc{margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.5}
     
     .grid{display:grid;gap:10px}
@@ -57,13 +51,30 @@
     .dash-col .grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
     .field{display:flex;flex-direction:column;gap:6px;min-width:0}
-    .field label{font-size:13px;color:#bfdbfe;font-weight:700}
+    .field label{font-size:13px;color:#bfdbfe;font-weight:700; display:flex; align-items:center; gap:4px;}
     
     .inline-input{display:grid;gap:6px}
     input,select,button{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:10px;color:white;width:100%;min-width:0;font-size:14px}
     button{cursor:pointer}
     
-    /* 손익 결과 카드 */
+    /* PC 전용 툴팁 CSS */
+    .tooltip-wrap { position: relative; display: inline-flex; align-items: center; gap: 4px; }
+    .tooltip-icon { display: inline-flex; justify-content: center; align-items: center; width: 14px; height: 14px; background: #374151; color: #94a3b8; border-radius: 50%; font-size: 10px; font-weight: bold; cursor: help; }
+    .tooltip-text {
+      position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 6px;
+      background: #1f2937; color: #f8fafc; font-size: 11px; font-weight: normal; padding: 6px 10px;
+      border-radius: 6px; white-space: nowrap; border: 1px solid #4b5563;
+      opacity: 0; visibility: hidden; transition: 0.2s; z-index: 10; pointer-events: none;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .tooltip-text::after {
+      content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border-width: 4px; border-style: solid; border-color: #4b5563 transparent transparent transparent;
+    }
+    @media (hover: hover) {
+      .tooltip-wrap:hover .tooltip-text { opacity: 1; visibility: visible; }
+    }
+
     .mobile-results{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
     .mini-card{background:#111827;border-radius:12px;padding:12px;display:flex;flex-direction:column; height:100%;}
     .mini-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
@@ -96,7 +107,6 @@
     .discord-apply-line.sub{color:#facc15;font-weight:600}
     .discord-apply-line.empty{color:#94a3b8;font-weight:500}
     
-    /* 요약 리스트 스타일 */
     .update-summary{display:grid;gap:8px;margin-top:12px;align-items:start;width:100%;}
     .update-list{display:grid;gap:10px;justify-items:start;width:100%;}
     .update-item{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;display:flex;flex-direction:column;gap:6px;width:100%;}
@@ -127,7 +137,6 @@
     .update-diff.minus{color:#facc15}
     .update-roi{font-weight:700;font-size:13px;color:#94a3b8;white-space:nowrap;text-align:left;}
     
-    /* 통계 칸 3단 분할 */
     .update-mobile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;background:#0b1226;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:8px 10px;}
     .update-mobile-col{display:grid;gap:2px;text-align:center;min-width:0}
     .update-mobile-label{font-size:11px;color:#cbd5e1;font-weight:700;white-space:nowrap}
@@ -143,7 +152,6 @@
     input:checked + .slider:before { transform:translateX(16px); }
     .toggle-row-box { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
 
-    /* 상세 레시피 박스 플렉스 처리 (최종 원가 줄맞춤용) */
     .inline-detail{margin-top:10px;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;display:flex;flex-direction:column;flex:1;}
     .recipe-row{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;margin:4px 0;color:#d1d5db;max-width:100%;}
     .recipe-row span:last-child{text-align:right;}
@@ -152,7 +160,6 @@
     .recipe-total{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.12);display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:10px;font-size:13px;font-weight:700;max-width:100%;}
     .recipe-total span:last-child{text-align:right;}
 
-    /* 버튼 너비 넉넉하게 확장 (텍스트 줄바꿈 방지) */
     .unit-btn { background: #1f2937; border: 1px solid #4b5563; border-radius: 8px; color: #93c5fd; font-size: 13px; font-weight: bold; cursor: pointer; padding: 0 10px; white-space: nowrap; transition: 0.2s; user-select: none; }
     .unit-btn:hover { background: #374151; }
     .unit-btn:active { background: #4b5563; }
@@ -167,11 +174,10 @@
     .trade-input-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .trade-input-lbl { font-size: 11px; color: #94a3b8; font-weight: bold; }
     
-    /* 거래 단위 선택 레이아웃 버튼 공간 확장 (84px -> 100px) */
     .trade-inline { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 6px; }
     .trade-inline input { padding: 8px 10px; font-size: 13px; }
     .trade-row-result { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); gap:8px;}
-    .trade-desc { font-size: 12px; color: #60a5fa; font-weight: 600; line-height: 1.4; word-break: keep-all; }
+    .trade-desc { font-size: 12px; color: #60a5fa; font-weight: 600; line-height: 1.4; word-break: keep-all; text-align: left; }
     .trade-subtotal { font-size: 15px; font-weight: bold; color: #4ade80; text-align: right; white-space: nowrap; }
     
     .trade-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 14px; border-top: 1px solid #374151; flex-wrap: wrap; gap: 10px; }
@@ -190,7 +196,7 @@
 <div class="wrap">
   <div class="card">
     <h1>연금술사 계산기</h1>
-    <div class="desc">판매가는 각 룬 최대 시세, 직접 수정 가능 / Ver 1.0 최종 수정 : 2026-07-27</div>
+    <div class="desc">판매가는 각 룬 최대 시세 기준이며, 직접 수정 가능합니다. / Ver 1.0 최종 수정 : 2026-07-27</div>
   </div>
 
   <div class="dashboard-layout">
@@ -200,7 +206,7 @@
         <h2>스킬 및 세팅 효과</h2>
         <div class="grid cols-3">
           <div class="field">
-            <label for="bonusRate">신발 강화 (2배율)</label>
+            <label class="tooltip-wrap">신발 강화 (2배율)<span class="tooltip-icon">?</span><span class="tooltip-text">생활 강화 레벨에 따른 룬 2배 획득 확률입니다.</span></label>
             <select id="bonusRate">
               <option value="0">노강 (0%)</option>
               <option value="0.01">+3강 (1%)</option>
@@ -214,7 +220,7 @@
             </select>
           </div>
           <div class="field">
-            <label for="petBonus">연금 펫 (반환율)</label>
+            <label class="tooltip-wrap">연금 펫 (반환율)<span class="tooltip-icon">?</span><span class="tooltip-text">펫 레벨에 따른 재료 반환 확률입니다.</span></label>
             <select id="petBonus">
               <option value="0">펫 없음 (0%)</option>
               <option value="0.01">0레벨 (1%)</option>
@@ -226,7 +232,7 @@
             </select>
           </div>
           <div class="field">
-            <label for="skillLevel">추출 강화 스킬 레벨</label>
+            <label>추출 강화 스킬 레벨</label>
             <input id="skillLevel" type="number" placeholder="0" value="0">
           </div>
         </div>
@@ -251,7 +257,7 @@
     
     <div class="dash-col">
       <div class="card" style="height:100%;">
-        <h2>디코 변동가 입력</h2>
+        <h2 class="tooltip-wrap">디코 변동가 입력<span class="tooltip-icon">?</span><span class="tooltip-text">디스코드 시세 텍스트를 붙여넣으면 일괄 반영됩니다.</span></h2>
         <textarea id="discordPaste" placeholder="[화염저항] | 199 → 260"></textarea>
         <div class="paste-actions">
           <button id="applyDiscordBtn" class="primary-btn">변경가 적용</button>
@@ -260,8 +266,8 @@
         </div>
         
         <div style="margin-top:20px; border-top:1px solid #374151; padding-top:14px;">
-          <h2 style="font-size:15px; color:#cbd5e1;">시세 반영 요약 리스트</h2>
-          <div id="discordApplyNotice" class="discord-apply-notice" style="margin-top:0; margin-bottom:8px;"></div>
+          <h2 class="tooltip-wrap" style="font-size:15px; color:#cbd5e1; margin-bottom:0;">시세 반영 요약 리스트<span class="tooltip-icon">?</span><span class="tooltip-text">위키의 룬별 최소~최대 시세 기준입니다.</span></h2>
+          <div id="discordApplyNotice" class="discord-apply-notice" style="margin-top:10px; margin-bottom:8px;"></div>
           <div id="updateSummary" class="update-summary" style="margin-top:0;"></div>
         </div>
       </div>
@@ -276,7 +282,7 @@
           <div class="trade-total" id="trade_sea_total">0 냥</div>
           <div class="trade-footer-btns">
             <button class="secondary-btn" style="padding:6px 14px; font-size:12px;" onclick="copyTradeTotal('sea')">금액 복사</button>
-            <button class="primary-btn" style="padding:6px 14px; font-size:12px;" onclick="syncTradeToMain('sea')">시세 반영</button>
+            <button class="primary-btn tooltip-wrap" style="padding:6px 14px; font-size:12px;" onclick="syncTradeToMain('sea')" title="계산된 단가를 메인 재료 시세에 덮어씁니다.">시세 반영</button>
           </div>
         </div>
       </div>
@@ -315,7 +321,7 @@
           <div class="trade-total" id="trade_gem_total">0 냥</div>
           <div class="trade-footer-btns">
             <button class="secondary-btn" style="padding:6px 14px; font-size:12px;" onclick="copyTradeTotal('gem')">금액 복사</button>
-            <button class="primary-btn" style="padding:6px 14px; font-size:12px;" onclick="syncTradeToMain('gem')">시세 반영</button>
+            <button class="primary-btn tooltip-wrap" style="padding:6px 14px; font-size:12px;" onclick="syncTradeToMain('gem')" title="계산된 단가를 메인 재료 시세에 덮어씁니다.">시세 반영</button>
           </div>
         </div>
       </div>
@@ -342,12 +348,12 @@ var fortuneChecked = false;
 
 window.tradeTotals = { sea: 0, gem: 0 };
   
-// 단위 세분화: 상자 1개, 상자 64개 추가
+/* 단위 명칭 수정 및 수량 단위에서 '상자 1개' 제거 */
 var UNIT_CYCLE = {
   main_other:   [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'shulker', l:'1셜커'}],
-  main_boxable: [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'box', l:'상자 1개'}, {u:'box64', l:'상자 64개'}, {u:'shulker', l:'1셜커'}],
-  sea_p:        [{u:'stack', l:'1세트당'}, {u:'box', l:'상자 1개당'}, {u:'box64', l:'상자 64개당'}, {u:'shulker', l:'1셜커당'}, {u:'item', l:'1개당'}],
-  sea_q:        [{u:'stack', l:'세트'}, {u:'box', l:'상자 1개'}, {u:'box64', l:'상자 64개'}, {u:'shulker', l:'셜커'}],
+  main_boxable: [{u:'item', l:'1개'}, {u:'stack', l:'1세트'}, {u:'box', l:'상자 1개'}, {u:'box64', l:'상자 1세트'}, {u:'shulker', l:'1셜커'}],
+  sea_p:        [{u:'stack', l:'1세트당'}, {u:'box', l:'상자 1개당'}, {u:'box64', l:'상자 1세트당'}, {u:'shulker', l:'1셜커당'}, {u:'item', l:'1개당'}],
+  sea_q:        [{u:'stack', l:'세트'}, {u:'box64', l:'상자 1세트'}, {u:'shulker', l:'셜커'}],
   gem_p:        [{u:'stack', l:'1세트당'}, {u:'shulker', l:'셜커당'}, {u:'item', l:'1개당'}],
   gem_q:        [{u:'stack', l:'세트'}, {u:'shulker', l:'셜커'}]
 };
@@ -364,7 +370,6 @@ var PRICE_FIELDS = [
 
 var INPUT_IDS = ['bonusRate','petBonus','skillLevel'];
 
-// 성급, 힘 룬 보석 소모량 1개로 변경 및 시세 범위 업데이트
 var RECIPES = [
   {key:'eogyeol', tier:'', name:'어결', min:5, max:5, detail:[
     ['물병 1개', function(p){return 1;}],
@@ -477,10 +482,11 @@ function buildTradeSeaGrid() {
   var html = data.map(function(d, i) {
     var t = i + 1;
     return '<div class="trade-row">' +
-             '<div class="trade-checks">' +
+             '<div class="trade-checks tooltip-wrap" style="display:inline-flex; width:auto; align-items:center;">' +
                '<span class="tier-label">' + d.tier + '</span>' +
                '<label class="trade-check-lbl"><input type="checkbox" id="trade_t' + t + '_c1" checked onchange="calcTrade()">' + d.n1 + '</label>' +
                '<label class="trade-check-lbl"><input type="checkbox" id="trade_t' + t + '_c2" checked onchange="calcTrade()">' + d.n2 + '</label>' +
+               '<span class="tooltip-icon" style="margin-left:4px;">?</span><span class="tooltip-text">한 종류의 해산물만 구매 시 체크를 해제하십시오.</span>' +
              '</div>' +
              '<div class="trade-inputs trade-inputs-sea">' +
                '<div class="trade-input-group">' +
@@ -505,16 +511,6 @@ function buildTradeSeaGrid() {
            '</div>';
   }).join('');
   document.getElementById('tradeRowsSea').innerHTML = html;
-}
-
-function formatSetsStr(totalSets) {
-  var boxes = Math.floor(totalSets / 9);
-  var rem = Math.round((totalSets % 9) * 100) / 100;
-  var parts = [];
-  if(boxes > 0) parts.push(boxes + '상자 세트');
-  if(rem > 0) parts.push(rem + '세트');
-  if(boxes === 0 && rem === 0) parts.push('0세트');
-  return parts.join(' ');
 }
 
 function parseTradePrice(rawStr, unit, isGem) {
@@ -549,14 +545,13 @@ function calcTrade() {
       var pricePerSet = 0;
       if(pu === 'item') pricePerSet = parsedPrice * 64;
       else if(pu === 'stack') pricePerSet = parsedPrice;
-      else if(pu === 'box') pricePerSet = parsedPrice / 9;
-      else if(pu === 'box64') pricePerSet = parsedPrice / 576;
-      else if(pu === 'shulker') pricePerSet = parsedPrice / 27;
+      else if(pu === 'box') pricePerSet = (parsedPrice / 9) * 64;
+      else if(pu === 'box64') pricePerSet = (parsedPrice / 576) * 64;
+      else if(pu === 'shulker') pricePerSet = (parsedPrice / 1728) * 64;
 
       var qtyInSets = 0;
       if(qu === 'stack') qtyInSets = qty;
-      else if(qu === 'box') qtyInSets = qty * 9;
-      else if(qu === 'box64') qtyInSets = qty * 576;
+      else if(qu === 'box64') qtyInSets = qty * 9; // 상자 1세트 = 9세트(576개)
       else if(qu === 'shulker') qtyInSets = qty * 27;
 
       var itemsCount = (chk1 ? 1 : 0) + (chk2 ? 1 : 0);
@@ -565,14 +560,26 @@ function calcTrade() {
 
       document.getElementById('trade_t'+i+'_total').innerText = fmt0(subtotal) + ' 냥';
       
-      var strStr = formatSetsStr(qtyInSets);
+      // 결과창 줄바꿈 및 표기 포맷 로직
       var dArr = [];
-      if(chk1) dArr.push(n1 + ' ' + strStr);
-      if(chk2) dArr.push(n2 + ' ' + strStr);
-      
-      var descHtml = dArr.join(' <span style="color:#cbd5e1; font-weight:normal;">+</span> ');
-      if(itemsCount === 2) descHtml += ' <br><span style="color:#94a3b8; font-size:11px;">(총 ' + formatSetsStr(qtyInSets * 2) + ')</span>';
-      
+      var unitLabel = '';
+      var countStr = '';
+
+      if (qu === 'stack') {
+        unitLabel = qty + '세트';
+        countStr = (qty * 64) + '개';
+      } else if (qu === 'box64') {
+        unitLabel = '상자 ' + qty + '세트';
+        countStr = (qty * 64) + '개';
+      } else if (qu === 'shulker') {
+        unitLabel = qty + '셜커';
+        countStr = (qty * 27) + '세트';
+      }
+
+      if(chk1) dArr.push(n1 + ' ' + unitLabel + ' (' + countStr + ')');
+      if(chk2) dArr.push(n2 + ' ' + unitLabel + ' (' + countStr + ')');
+
+      var descHtml = dArr.join('<br><span style="color:#cbd5e1; font-weight:normal;">+</span> ');
       document.getElementById('trade_t'+i+'_desc').innerHTML = descHtml;
     } else {
       document.getElementById('trade_t'+i+'_total').innerText = '0 냥';
@@ -605,7 +612,8 @@ function calcTrade() {
     document.getElementById('trade_g_total').innerText = fmt0(totalGem) + ' 냥';
     
     var g_qu_lbl = (g_qu === 'stack') ? '세트' : '셜커';
-    document.getElementById('trade_g_desc').innerHTML = '보석 ' + g_qty + g_qu_lbl;
+    var gCountStr = (g_qu === 'stack') ? (g_qty * 64) + '개' : (g_qty * 27) + '세트';
+    document.getElementById('trade_g_desc').innerHTML = '보석 ' + g_qty + g_qu_lbl + ' (' + gCountStr + ')';
   } else {
     document.getElementById('trade_g_total').innerText = '0 냥';
     document.getElementById('trade_g_desc').innerHTML = '';
@@ -645,7 +653,7 @@ function syncTradeToMain(type) {
         count++;
       }
     }
-    if(count > 0) { render(); saveState(); showToast(count + '개 해산물 시세 반영 완료!'); }
+    if(count > 0) { render(); saveState(); showToast(count + '개 해산물 시세가 반영되었습니다.'); }
   } else if (type === 'gem') {
     var pv = document.getElementById('trade_g_pv').value;
     var pu = document.getElementById('trade_g_pu').getAttribute('data-u');
@@ -660,7 +668,7 @@ function syncTradeToMain(type) {
       if(match) btn.innerText = match.l;
       document.getElementById('price_gem_unit').value = pu;
 
-      render(); saveState(); showToast('보석 시세 반영 완료!');
+      render(); saveState(); showToast('보석 시세가 반영되었습니다.');
     }
   }
 }
@@ -674,7 +682,7 @@ function copyTradeTotal(type) {
   temp.select();
   document.execCommand('copy');
   document.body.removeChild(temp);
-  showToast('성공적으로 클립보드에 복사되었습니다.');
+  showToast('클립보드에 복사되었습니다.');
 }
 
 function syncMood(checked) { moodChecked = checked; updateTogglesDOM(); saveState(); render(); }
@@ -688,12 +696,13 @@ function updateTogglesDOM() {
 }
 
 function unitSize(unit){
-  if(unit==='stack') return STACK;
-  if(unit==='box') return STACK * 9;
-  if(unit==='box64') return STACK * 576;
-  if(unit==='shulker') return SHULKER;
+  if(unit==='stack') return 64;
+  if(unit==='box') return 9;
+  if(unit==='box64') return 576;
+  if(unit==='shulker') return 1728;
   return 1;
 }
+
 function num(v){ var n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
 function fmt1(v){ return num(v).toLocaleString('ko-KR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
 function fmt0(v){ return Math.round(num(v)).toLocaleString('ko-KR'); }
@@ -785,7 +794,7 @@ function renderDiscordApplyNotice(updates){
 
   if(safeUpdates.length === 0){
     appliedLine = '';
-    missingLine = '아직 적용된 변경가가 없습니다. (기본 최고가 적용 중)';
+    missingLine = '반영된 변경가가 없습니다. 기본 최고가를 적용합니다.';
   } else {
     appliedLine = safeUpdates.length + '개 품목이 반영되었습니다.';
     var updatedKeys = {};
@@ -796,7 +805,7 @@ function renderDiscordApplyNotice(updates){
       if(!updatedKeys[RECIPES[j].key]) missingNames.push(RECIPES[j].name);
     }
     if(missingNames.length === 0) missingLine = '';
-    else missingLine = '(' + missingNames.join(', ') + ' 빠짐 - 최고가 유지)';
+    else missingLine = '(' + missingNames.join(', ') + ' 제외 - 최고가 유지)';
   }
 
   var html = '';
@@ -1107,16 +1116,21 @@ function loadState(){
     tradeFields.forEach(function(ids) {
       if(state[ids.pv] !== undefined && document.getElementById(ids.pv)) document.getElementById(ids.pv).value = state[ids.pv];
       if(state[ids.qv] !== undefined && document.getElementById(ids.qv)) document.getElementById(ids.qv).value = state[ids.qv];
+      
       if(state[ids.pu] !== undefined && document.getElementById(ids.pu)) {
         var puBtn = document.getElementById(ids.pu);
         puBtn.setAttribute('data-u', state[ids.pu]);
         var puMatch = UNIT_CYCLE.sea_p.find(function(x){ return x.u === state[ids.pu]; });
         if(puMatch) puBtn.innerText = puMatch.l;
       }
+      
       if(state[ids.qu] !== undefined && document.getElementById(ids.qu)) {
+        var savedQu = state[ids.qu];
+        if (savedQu === 'box') savedQu = 'box64'; // 상자 1개 단위 삭제에 따른 기존 데이터 호환 처리
+        
         var quBtn = document.getElementById(ids.qu);
-        quBtn.setAttribute('data-u', state[ids.qu]);
-        var quMatch = UNIT_CYCLE.sea_q.find(function(x){ return x.u === state[ids.qu]; });
+        quBtn.setAttribute('data-u', savedQu);
+        var quMatch = UNIT_CYCLE.sea_q.find(function(x){ return x.u === savedQu; });
         if(quMatch) quBtn.innerText = quMatch.l;
       }
     });
